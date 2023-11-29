@@ -90,7 +90,18 @@ const Pools: FC = () => {
                 </Box>
               }
               SuffixIcon={
-                <ChevronDownSVG width="100%" maxWidth="1rem" maxHeight="1rem" />
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  rotate={isOpen ? '180deg' : '0deg'}
+                >
+                  <ChevronDownSVG
+                    width="100%"
+                    maxWidth="1rem"
+                    maxHeight="1rem"
+                  />
+                </Box>
               }
             >
               <Typography variant="body" size="large" width="100%">
