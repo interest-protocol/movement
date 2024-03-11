@@ -7,6 +7,7 @@ const MyCoinsHeader: FC = () => (
     display="grid"
     py={['s', 'm']}
     px={['s', 'l']}
+    color="onSurface"
     fontSize={['xs', 's']}
     gridTemplateColumns={['1fr 1fr 1fr', '2rem 1fr 1fr 1fr']}
   >

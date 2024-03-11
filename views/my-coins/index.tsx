@@ -32,6 +32,7 @@ const MyCoins: FC = () => {
         fontFamily="Proto"
         textAlign="center"
         fontSize={['5xl', '8xl']}
+        color="onSurface"
       >
         My Coins
       </Box>

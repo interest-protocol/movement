@@ -57,6 +57,7 @@ const MyCoinsItem: FC<CoinObject & { capId: string | null }> = ({
       gridTemplateColumns={['1fr 1fr 1fr', '2rem 1fr 1fr 1fr']}
     >
       <Box
+        color="onSurface"
         alignItems="center"
         justifyContent="center"
         display={['none', 'flex']}
@@ -72,9 +73,9 @@ const MyCoinsItem: FC<CoinObject & { capId: string | null }> = ({
         ) : (
           renderToken()
         )}
-        <Box>{symbol}</Box>
+        <Box color="onSurface">{symbol}</Box>
       </Box>
-      <Box fontSize="s" textAlign={['center', 'unset']}>
+      <Box fontSize="s" textAlign={['center', 'unset']} color="onSurface">
         {FixedPointMath.from(BigNumber(balance)).toNumber(decimals)}
       </Box>
       <Box fontSize="s" display="flex" justifyContent={['center', 'unset']}>
@@ -127,10 +128,11 @@ const MyCoinsItem: FC<CoinObject & { capId: string | null }> = ({
                 <Box
                   gap="xs"
                   display="flex"
+                  color="onSurface"
                   alignItems="center"
                   onClick={() => goToExplorer(coinObjectId)}
                 >
-                  <Box>
+                  <Box color="onSurface">
                     {coinObjectId.slice(0, 6)}...{coinObjectId.slice(-4)}
                   </Box>
                   <ArrowTopRightSVG
@@ -139,7 +141,7 @@ const MyCoinsItem: FC<CoinObject & { capId: string | null }> = ({
                     maxHeight="1rem"
                   />
                 </Box>
-                <Box textAlign={['center', 'unset']}>
+                <Box textAlign={['center', 'unset']} color="onSurface">
                   {FixedPointMath.from(BigNumber(balance)).toNumber(decimals)}
                 </Box>
                 <Box
