@@ -129,10 +129,17 @@ const CreateTokenForm: FC = () => {
           fontSize="l"
           borderBottom="1px solid"
           borderColor="outlineVariant"
+          color="onSurface"
         >
           Coin Generator
         </Box>
-        <Box p="xl" display="flex" flexDirection="column" gap="m">
+        <Box
+          p="xl"
+          display="flex"
+          flexDirection="column"
+          gap="m"
+          color="onSurface"
+        >
           <Box display="flex" flexDirection="column" gap="m">
             <Box>1. Coin Details</Box>
             <TextField

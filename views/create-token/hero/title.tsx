@@ -4,7 +4,13 @@ import { FC } from 'react';
 import { MOVSVG } from '@/svg';
 
 const Title: FC = () => (
-  <Box display="flex" flexDirection="column" rowGap="l" mb="xl">
+  <Box
+    display="flex"
+    flexDirection="column"
+    rowGap="l"
+    mb="xl"
+    color="onSurface"
+  >
     <Box>
       <Typography mr="l" as="span" variant="display" size="large">
         Create coins on M2 Network
