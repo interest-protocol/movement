@@ -3,7 +3,7 @@ import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SUI_TYPE_ARG } from '@mysten/sui.js/utils';
 import { useWalletKit } from '@mysten/wallet-kit';
 import { not } from 'ramda';
-import { FC, useState } from 'react';
+import { FC, useId, useState } from 'react';
 import toast from 'react-hot-toast';
 import { v4 } from 'uuid';
 
@@ -12,6 +12,7 @@ import { COINS } from '@/constants/coins';
 import { MINT_MODULE_NAME_MAP, PACKAGES } from '@/constants/packages';
 import { useNetwork } from '@/context/network';
 import { useMovementClient, useUserMintEpoch, useWeb3 } from '@/hooks';
+import useClickOutsideListenerRef from '@/hooks/use-click-outside-listener-ref';
 import { useSuiSystemState } from '@/hooks/use-sui-system-state';
 import { TOKEN_ICONS, TOKEN_SYMBOL } from '@/lib';
 import { ChevronDownSVG } from '@/svg';
@@ -78,6 +79,20 @@ const MintForm: FC = () => {
     }
   };
 
+  const boxId = useId();
+
+  const closeDropdown = (event: any) => {
+    if (
+      event?.path?.some((node: any) => node?.id == boxId) ||
+      event?.composedPath()?.some((node: any) => node?.id == boxId)
+    )
+      return;
+
+    setIsOpen(false);
+  };
+
+  const dropdownRef = useClickOutsideListenerRef<HTMLDivElement>(closeDropdown);
+
   const onMint = () => {
     toast.promise(handleMint(), {
       loading: 'Loading',
@@ -110,11 +125,17 @@ const MintForm: FC = () => {
         <Typography variant="body" size="large" color="onSurface">
           Choose coin to mint
         </Typography>
-        <Box position="relative" display="flex" flexDirection="column">
+        <Box
+          id={boxId}
+          display="flex"
+          position="relative"
+          flexDirection="column"
+        >
           <Button
             px="xs"
             variant="outline"
             borderRadius="xs"
+            borderColor="onSurface"
             onClick={() => setIsOpen(not)}
             PrefixIcon={
               <Box
@@ -161,6 +182,9 @@ const MintForm: FC = () => {
           )}
           {isOpen && (
             <Box
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              ref={dropdownRef}
               top="4rem"
               zIndex={1}
               cursor="pointer"
@@ -176,6 +200,7 @@ const MintForm: FC = () => {
                   <ListItem
                     key={v4()}
                     title={symbol}
+                    cursor="pointer"
                     onClick={() => {
                       setSelected({ symbol, type, decimals });
                       setIsOpen(false);

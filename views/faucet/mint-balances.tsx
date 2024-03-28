@@ -39,8 +39,17 @@ const MintBalances: FC = () => {
         {COINS.map(({ symbol, type }) => {
           const Icon = TOKEN_ICONS[network][symbol];
           return (
-            <Box key={v4()} display="flex" justifyContent="space-between">
-              <Box display="flex" alignItems="center" gap="l">
+            <Box
+              p="xs"
+              key={v4()}
+              display="flex"
+              borderRadius="xs"
+              border="1px solid"
+              alignItems="center"
+              borderColor="onSurface"
+              justifyContent="space-between"
+            >
+              <Box display="flex" alignItems="center" gap="xs">
                 <Box
                   display="flex"
                   bg="onSurface"
