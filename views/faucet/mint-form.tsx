@@ -137,6 +137,9 @@ const MintForm: FC = () => {
             borderRadius="xs"
             borderColor="onSurface"
             onClick={() => setIsOpen(not)}
+            nHover={{
+              color: 'unset',
+            }}
             PrefixIcon={
               <Box
                 display="flex"
@@ -162,7 +165,7 @@ const MintForm: FC = () => {
                 justifyContent="center"
                 rotate={isOpen ? '180deg' : '0deg'}
               >
-                <ChevronDownSVG width="100%" maxWidth="1rem" maxHeight="1rem" />
+                <ChevronDownSVG width="100%" maxWidth="2rem" maxHeight="2rem" />
               </Box>
             }
           >
