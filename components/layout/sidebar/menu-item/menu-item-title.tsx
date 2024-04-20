@@ -55,6 +55,7 @@ const MenuItemTitleContent: FC<MenuItemTitleContentProps> = ({
 
   return (
     <Motion
+      data-testid={name.replace(' ', '')}
       mx="auto"
       key={v4()}
       zIndex="1"
