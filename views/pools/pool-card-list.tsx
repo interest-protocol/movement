@@ -113,9 +113,10 @@ const PoolCardListContent: FC<PoolCardListContentProps> = ({
         return tokenList.every((x) => coinTypes.includes(x.type));
       });
 
-      toast.dismiss();
-      return filteredPools;
+      if (filteredPools.length) return filteredPools;
+
       poolPairLoadingModal();
+      toast.dismiss();
     }
   );
 
