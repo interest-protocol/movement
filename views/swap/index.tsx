@@ -1,34 +1,18 @@
-import { Box, Button } from '@interest-protocol/ui-kit';
-import { useRouter } from 'next/router';
+import { Box } from '@interest-protocol/ui-kit';
 import { FC } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { v4 } from 'uuid';
 
 import Layout from '@/components/layout';
-import { SwapSVG } from '@/svg';
-import { updateURL } from '@/utils';
 
 import Input from './input';
 import ManageSlippage from './manage-slippage';
-import { SwapForm } from './swap.types';
+import SwapFlipToken from './swap-flip-token';
 import SwapManager from './swap-manager';
 import SwapPath from './swap-manager/swap-path';
 import SwapPreviewButton from './swap-preview-button';
+import SwapUpdatePrice from './swap-update-price';
 
 const Swap: FC = () => {
-  const { pathname } = useRouter();
-  const form = useFormContext<SwapForm>();
-
-  const { getValues, setValue } = form;
-
-  const flipToken = () => {
-    const tmpTo = getValues('to');
-    const tmpFrom = getValues('from');
-    setValue('to', { ...tmpFrom, value: '' });
-    setValue('from', { ...tmpTo, value: '' });
-
-    updateURL(`${pathname}?from=${tmpTo.type}&to=${tmpFrom.type}`);
-  };
-
   return (
     <Layout title="Swap">
       <Box
@@ -41,23 +25,40 @@ const Swap: FC = () => {
       >
         <Box py="xl" px="m" my="xs" borderRadius="xs" bg="container">
           <Input label="from" />
-          <Box my="0.25rem" position="relative">
+          <Box
+            display="flex"
+            position="relative"
+            alignContent="center"
+            justifyContent="center"
+          >
+            <Box width="100%" height="0.313rem" bg="lowContainer" />
             <Box
-              left="45%"
-              borderRadius="s"
+              gap="s"
+              my="-1.5rem"
+              width="100%"
+              display="flex"
               position="absolute"
-              border="7px solid"
-              borderColor="surface"
+              alignItems="center"
+              justifyContent="center"
             >
-              <Button
-                isIcon
-                bg="container"
-                variant="tonal"
-                color="primary"
-                onClick={flipToken}
-              >
-                <SwapSVG maxWidth="1.5rem" maxHeight="1.5rem" width="100%" />
-              </Button>
+              {[
+                <SwapFlipToken key={v4()} />,
+                <SwapUpdatePrice key={v4()} />,
+              ].map((button) => (
+                <Box
+                  key={v4()}
+                  display="flex"
+                  width="3.25rem"
+                  height="3.25rem"
+                  borderRadius="full"
+                  border="5px solid"
+                  alignItems="center"
+                  borderColor="lowContainer"
+                  justifyContent="center"
+                >
+                  {button}
+                </Box>
+              ))}
             </Box>
           </Box>
         </Box>

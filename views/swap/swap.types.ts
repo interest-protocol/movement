@@ -1,16 +1,16 @@
 import { WalletAccount } from '@wallet-standard/base';
+import BigNumber from 'bignumber.js';
 import { UseFormReturn } from 'react-hook-form';
 
 import { Network } from '@/constants';
 import { CoinsMap } from '@/hooks/use-get-all-coins/use-get-all-coins.types';
-import { CoinData } from '@/interface';
+import { Token } from '@/interface';
 
 export interface ISwapSettings {
   slippage: string;
 }
-
-export interface SwapToken extends CoinData {
-  value: string;
+export interface SwapToken extends Token {
+  display: string;
   usdPrice: number | null;
   isFetchingSwap?: boolean;
 }
@@ -25,7 +25,8 @@ export type SwapPath = ReadonlyArray<SwapTypeArgs>;
 
 export interface SwapForm {
   to: SwapToken;
-  from: SwapToken;
+  from: SwapToken & { value: BigNumber };
+  swapping: boolean;
   settings: ISwapSettings;
   lock: boolean;
   error?: string | null;
