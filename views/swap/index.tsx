@@ -7,25 +7,29 @@ import Layout from '@/components/layout';
 import Input from './input';
 import ManageSlippage from './manage-slippage';
 import SwapFlipToken from './swap-flip-token';
-import SwapManager from './swap-manager';
+//import SwapManager from './swap-manager';
 import SwapPath from './swap-manager/swap-path';
 import SwapPreviewButton from './swap-preview-button';
 import SwapUpdatePrice from './swap-update-price';
 
 const Swap: FC = () => {
   return (
-    <Layout title="Swap">
+    <Layout>
       <Box
         mx="auto"
+        mt="3.5rem"
         display="flex"
-        borderRadius="2xl"
+        borderRadius="l"
         flexDirection="column"
-        px={['xl', 'xl', 'xl', '7xl']}
+        px={['2xs', 'xl', 'xl', '7xl']}
         width={['100%', '100%', '100%', '39.75rem']}
       >
-        <Box py="xl" px="m" my="xs" borderRadius="xs" bg="container">
-          <Input label="from" />
+        <Box bg="container" p="xl" borderRadius="xs">
+          <Box display="flex" flexDirection="column" gap="5xl">
+            <Input label="from" />
+          </Box>
           <Box
+            my="2xl"
             display="flex"
             position="relative"
             alignContent="center"
@@ -61,25 +65,16 @@ const Swap: FC = () => {
               ))}
             </Box>
           </Box>
-        </Box>
-        <Box py="xl" px="m" borderRadius="xs" bg="container">
-          <Input label="to" />
-          <Box
-            mt="l"
-            mb="l"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <SwapPreviewButton />
+          <Box py="xl" bg="container" my="m">
+            <Input label="to" />
           </Box>
+          <SwapPreviewButton />
         </Box>
         <SwapPath />
         <Box my="xs" bg="container" borderRadius="xs">
           <ManageSlippage />
         </Box>
       </Box>
-      <SwapManager />
     </Layout>
   );
 };
