@@ -14,8 +14,6 @@ const Input: FC<InputProps> = ({ index }) => {
   const { control, register, setValue } = useFormContext<CreatePoolForm>();
   const display = useWatch({ control, name: `tokens.${index}.value` });
   const editable = useWatch({ control, name: `tokens.${index}.value` });
-
-  console.log('Display data :: ', display);
   return (
     <Box
       width="100%"
