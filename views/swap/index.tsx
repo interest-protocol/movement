@@ -7,7 +7,7 @@ import Layout from '@/components/layout';
 import Input from './input';
 import ManageSlippage from './manage-slippage';
 import SwapFlipToken from './swap-flip-token';
-//import SwapManager from './swap-manager';
+import SwapManager from './swap-manager';
 import SwapPath from './swap-manager/swap-path';
 import SwapPreviewButton from './swap-preview-button';
 import SwapUpdatePrice from './swap-update-price';
@@ -74,6 +74,7 @@ const Swap: FC = () => {
         <Box my="xs" bg="container" borderRadius="xs">
           <ManageSlippage />
         </Box>
+        <SwapManager />
       </Box>
     </Layout>
   );
