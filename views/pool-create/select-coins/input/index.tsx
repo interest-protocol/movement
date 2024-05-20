@@ -1,6 +1,6 @@
 import { Box, TextField } from '@interest-protocol/ui-kit';
-import { ChangeEvent, FC } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { FC } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
 
 import { parseInputEventToNumberString } from '@/utils';
 
@@ -11,8 +11,11 @@ import InputMaxButton from './input-max-button';
 import SelectToken from './select-token';
 
 const Input: FC<InputProps> = ({ index }) => {
-  const { register, setValue } = useFormContext<CreatePoolForm>();
+  const { control, register, setValue } = useFormContext<CreatePoolForm>();
+  const display = useWatch({ control, name: `tokens.${index}.value` });
+  const editable = useWatch({ control, name: `tokens.${index}.value` });
 
+  console.log('Display data :: ', display);
   return (
     <Box
       width="100%"
@@ -41,12 +44,13 @@ const Input: FC<InputProps> = ({ index }) => {
           textAlign="right"
           fontFamily="Satoshi"
           {...register(`tokens.${index}.value`, {
-            onChange: (v: ChangeEvent<HTMLInputElement>) => {
-              setValue?.(
+            onChange: (v) =>
+              setValue(
                 `tokens.${index}.value`,
-                parseInputEventToNumberString(v)
-              );
-            },
+                !editable
+                  ? '1'
+                  : parseInputEventToNumberString(v, Number(display))
+              ),
           })}
           fieldProps={{
             mt: 'm',
