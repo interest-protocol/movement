@@ -32,7 +32,7 @@ const ModalTokenSearch: FC<ModalTokenSearchProps> = ({
   return (
     <TokenModalItem
       key={v4()}
-      type={search}
+      type={search as `0x${string}`}
       selected={false}
       symbol={tokenMetadata!.symbol}
       onClick={() => handleSelectToken(search)}

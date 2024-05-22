@@ -43,11 +43,11 @@ const SwapManagerField: FC<SwapManagerProps> = ({
       client.devInspectTransactionBlock.name
     ),
     async () => {
-      const amount = FixedPointMath.toBigNumber(from.value, from.decimals);
+      const amount = FixedPointMath.toBigNumber(from.display, from.decimals);
 
       const safeAmount = amount.decimalPlaces(0, BigNumber.ROUND_DOWN);
 
-      if (!from || !+from.value || lock || hasNoMarket) return;
+      if (!from || !+from.display || lock || hasNoMarket) return;
 
       setIsFetchingSwapAmount(true);
 
@@ -94,7 +94,7 @@ const SwapManagerField: FC<SwapManagerProps> = ({
 
         setIsZeroSwapAmount(!response.amount);
         setValue(
-          `${setValueName}.value`,
+          `${setValueName}.display`,
           FixedPointMath.toNumber(
             new BigNumber(response.amount),
             decimals,
@@ -116,7 +116,7 @@ const SwapManagerField: FC<SwapManagerProps> = ({
   useEffect(() => {
     setValue(
       'disabled',
-      !!(error && +from?.value > 0) ||
+      !!(error && +from?.display > 0) ||
         isFetchingSwapAmount ||
         from?.type === type ||
         hasNoMarket

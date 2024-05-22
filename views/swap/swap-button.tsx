@@ -28,8 +28,8 @@ const SwapButton = () => {
   const formSwap: UseFormReturn<SwapForm> = useFormContext();
 
   const resetInput = () => {
-    formSwap.setValue('from.value', '0');
-    formSwap.setValue('to.value', '0');
+    formSwap.setValue('from.display', '0');
+    formSwap.setValue('to.display', '0');
   };
 
   const handleSwap = async () => {

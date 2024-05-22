@@ -66,7 +66,9 @@ const swap = async ({
 
   const isMaxTrade = formSwap.getValues('maxValue');
 
-  const fromValue = isZeroSwap ? (+from.value * 0.05).toString() : from.value;
+  const fromValue = isZeroSwap
+    ? (+from.display * 0.05).toString()
+    : from.display;
 
   const amount = isMaxTrade
     ? coinsMap[to.type]
@@ -78,7 +80,7 @@ const swap = async ({
       );
 
   const amountOut = FixedPointMath.toBigNumber(
-    to.value,
+    to.display,
     to.decimals
   ).decimalPlaces(0, BigNumber.ROUND_DOWN);
 

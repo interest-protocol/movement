@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js';
 export type BigNumberish = BigNumber | bigint | string | number;
 
 export interface CoinData {
-  type: string;
+  type: `0x${string}`;
   decimals: number;
   symbol: string;
 }
@@ -19,7 +19,7 @@ export enum PoolTypeEnum {
 export interface LocalCoinMetadata {
   decimals: number;
   symbol: string;
-  type: string;
+  type: `0x${string}`;
 }
 
 export interface PoolPageProps {

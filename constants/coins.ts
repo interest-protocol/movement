@@ -57,7 +57,7 @@ export const COINS = [
     symbol: TOKEN_SYMBOL.USDC,
     type: USDC_TYPE,
   },
-];
+] as Array<LocalCoinMetadata>;
 
 export const COINS_MAP = {
   [SUI_TYPE_ARG]: {
@@ -75,7 +75,7 @@ export const COINS_MAP = {
     symbol: TOKEN_SYMBOL.USDC,
     type: USDC_TYPE,
   },
-} as Record<string, LocalCoinMetadata>;
+} as Record<`0x${string}`, LocalCoinMetadata>;
 
 export const COIN_METADATA = {
   [ETH_TYPE]: {

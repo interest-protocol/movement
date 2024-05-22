@@ -8,11 +8,24 @@ import { Token } from '@/interface';
 
 export interface ISwapSettings {
   slippage: string;
+  interval: string;
+  aggregator: Aggregator;
 }
 export interface SwapToken extends Token {
   display: string;
   usdPrice: number | null;
   isFetchingSwap?: boolean;
+}
+
+export enum Aggregator {
+  Native = 'Native',
+}
+
+export interface AggregatorProps {
+  url: string;
+  logo: string;
+  name: string;
+  shortName: 'Native';
 }
 
 interface SwapTypeArgs {
@@ -29,12 +42,15 @@ export interface SwapForm {
   swapping: boolean;
   settings: ISwapSettings;
   lock: boolean;
+  fetchingPrices: boolean;
+  lastFetchDate: number | null;
   error?: string | null;
   loading: boolean;
   maxValue: boolean;
   disabled: boolean;
   swapPath: SwapPath;
   readyToSwap: boolean;
+  focus: boolean;
 }
 
 export interface SwapPreviewModalProps {

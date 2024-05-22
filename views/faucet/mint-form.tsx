@@ -42,8 +42,7 @@ const MintForm: FC = () => {
 
   const isSameEpoch =
     !!Number(data?.epoch) &&
-    (lastMintEpoch as Record<TOKEN_SYMBOL, string>)[selected.symbol] ===
-      data?.epoch;
+    (lastMintEpoch as Record<string, string>)[selected.symbol] === data?.epoch;
 
   const handleMint = async () => {
     try {

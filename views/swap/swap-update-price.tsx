@@ -1,8 +1,13 @@
 import { Box, Button, ProgressIndicator } from '@interest-protocol/ui-kit';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import Countdown, { CountdownRendererFn } from 'react-countdown';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { useDebounce } from 'use-debounce';
 
+import { useWeb3 } from '@/hooks';
 import { RefreshSVG } from '@/svg';
+
+import { SwapForm } from './swap.types';
 
 const countdownRenderer =
   (interval: string): CountdownRendererFn =>
@@ -21,9 +26,59 @@ const countdownRenderer =
   };
 
 const SwapUpdatePrice: FC = () => {
-  const disabled = true;
-  const coinInValue = 0;
-  const fetchingPrices = true;
+  const { control, setValue } = useFormContext<SwapForm>();
+  const { mutate } = useWeb3();
+
+  const [coinInValue] = useDebounce(
+    useWatch({
+      control,
+      name: 'from.value',
+    }),
+    800
+  );
+
+  const coinOutType = useWatch({
+    control,
+    name: 'to.type',
+  });
+
+  const swapping = useWatch({
+    control,
+    name: 'swapping',
+  });
+
+  const interval = useWatch({
+    control,
+    name: 'settings.interval',
+  });
+
+  const lastFetchDate = useWatch({
+    control,
+    name: 'lastFetchDate',
+  });
+
+  const fetchingPrices = useWatch({
+    control,
+    name: 'fetchingPrices',
+  });
+
+  const resetFields = () => {
+    setValue('to.display', '0');
+    setValue('lastFetchDate', null);
+    setValue('fetchingPrices', false);
+    setValue('error', null);
+  };
+
+  const disabled = !coinInValue || coinInValue.isZero() || !coinOutType;
+
+  if (swapping) return;
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    resetFields();
+    setValue('fetchingPrices', false);
+  }, [fetchingPrices]);
+
   return (
     <Button
       isIcon

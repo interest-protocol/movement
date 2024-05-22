@@ -1,4 +1,5 @@
 import { Box } from '@interest-protocol/ui-kit';
+import { SUI_TYPE_ARG } from '@mysten/sui.js/utils';
 import BigNumber from 'bignumber.js';
 import dynamic from 'next/dynamic';
 import { FC } from 'react';
@@ -6,6 +7,7 @@ import { useFormContext, useWatch } from 'react-hook-form';
 
 import { useWeb3 } from '@/hooks/use-web3';
 import { FixedPointMath } from '@/lib';
+import { ZERO_BIG_NUMBER } from '@/utils';
 
 import { SwapForm } from '../../swap.types';
 
@@ -19,32 +21,51 @@ const SwapFormFieldSlider: FC = () => {
   const { control, setValue, getValues } = useFormContext<SwapForm>();
 
   const type = useWatch({ control, name: 'from.type' });
+  const swapping = useWatch({ control, name: 'swapping' });
 
-  const balance = FixedPointMath.toNumber(
-    BigNumber(coinsMap[type]?.balance.toString() || 0),
-    coinsMap[type]?.decimals ?? (getValues('from.decimals') || 0)
-  );
+  const safeRemoval =
+    type === SUI_TYPE_ARG
+      ? FixedPointMath.toBigNumber(1, getValues('from.decimals'))
+      : ZERO_BIG_NUMBER;
+
+  const balance = coinsMap[type]
+    ? coinsMap[type].balance.minus(safeRemoval)
+    : ZERO_BIG_NUMBER;
+
+  const fromValue = type ? getValues('from.value') : ZERO_BIG_NUMBER;
+
+  const initial =
+    fromValue && balance && !fromValue.isZero?.() && !balance.isZero?.()
+      ? balance.gt(fromValue)
+        ? +FixedPointMath.toNumber(
+            fromValue.times(100).div(balance),
+            0
+          ).toFixed(0)
+        : 100
+      : 0;
 
   return (
-    <Box mx="s" color="onSurface">
+    <Box mx="s">
       <Slider
         min={0}
         max={100}
-        disabled={!balance}
-        initial={Math.floor(
-          Number(getValues('from.value')) && balance
-            ? balance >= Number(getValues('from.value'))
-              ? (Number(getValues('from.value')) * 100) / balance
-              : 100
-            : 0
-        )}
+        initial={initial}
+        disabled={!balance || balance.isZero?.() || swapping}
         onChange={(value: number) => {
-          setValue('lock', false);
-          setValue('maxValue', value === 100);
+          setValue(
+            'from.display',
+            Number(
+              (
+                FixedPointMath.toNumber(balance, getValues('from.decimals')) *
+                (value / 100)
+              ).toFixed(6)
+            ).toPrecision()
+          );
           setValue(
             'from.value',
-            `${(Number(value / 100) * balance).toPrecision(6)}`
+            balance.times(BigNumber(value)).div(BigNumber(100))
           );
+          if (getValues('focus')) setValue('focus', false);
         }}
       />
     </Box>
