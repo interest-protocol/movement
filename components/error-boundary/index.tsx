@@ -12,7 +12,12 @@ class ErrorBoundary extends Component<PropsWithChildren> {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(error: any, errorInfo: any) {
+    console.log({
+      error,
+      errorInfo,
+    });
+
     return { hasError: true };
   }
 
