@@ -1,34 +1,22 @@
-import { Component, PropsWithChildren } from 'react';
+import { Component, ReactElement } from 'react';
 
 import Error from '@/views/error';
 
-class ErrorBoundary extends Component<PropsWithChildren> {
-  state: {
-    hasError: boolean;
+import { Props, State } from './error-boundary.types';
+
+class ErrorBoundary extends Component<Props, State> {
+  state = {
+    error: null,
   };
 
-  constructor(props: PropsWithChildren) {
-    super(props);
-    this.state = { hasError: false };
+  static getDerivedStateFromError(error: Error): { error: Error } {
+    return { error };
   }
 
-  static getDerivedStateFromError(error: any, errorInfo: any) {
-    console.log({
-      error,
-      errorInfo,
-    });
+  render(): ReactElement {
+    if (this.state.error) return <Error message={this.state.error} />;
 
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: any, errorInfo: any) {
-    console.log({ error, errorInfo });
-  }
-
-  render() {
-    if (this.state.hasError) return <Error />;
-
-    return this.props.children;
+    return <>{this.props.children}</>;
   }
 }
 
