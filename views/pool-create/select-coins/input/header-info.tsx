@@ -9,7 +9,7 @@ import { FixedPointMath } from '@/lib';
 import { CreatePoolForm } from '../../pool-create.types';
 import { InputProps } from './input.types';
 
-const HeaderInfo: FC<InputProps> = ({ index }) => {
+const HeaderInfo: FC<InputProps> = ({ index, isMobile }) => {
   const { coinsMap } = useWeb3();
   const { control } = useFormContext<CreatePoolForm>();
 
@@ -23,11 +23,10 @@ const HeaderInfo: FC<InputProps> = ({ index }) => {
 
   return (
     <Box
-      mr="3rem"
       gap="2xs"
       top="0.2rem"
       display="flex"
-      right="1.2rem"
+      right={isMobile ? '4.3rem' : '1rem'}
       color="onSurface"
       position="absolute"
       alignItems="center"

@@ -12,7 +12,7 @@ import SelectTokenModal from '@/views/components/select-token-modal';
 import { CreatePoolForm } from '../../pool-create.types';
 import { InputProps } from './input.types';
 
-const SelectToken: FC<InputProps> = ({ index }) => {
+const SelectToken: FC<InputProps> = ({ index, isMobile }) => {
   const network = useNetwork();
   const { setModal, handleClose } = useModal();
 
@@ -79,8 +79,13 @@ const SelectToken: FC<InputProps> = ({ index }) => {
           ),
         })}
       >
-        <Typography size="large" variant="label" p="xs" whiteSpace="nowrap">
-          {currentSymbol || 'Select Token'}
+        <Typography
+          p="xs"
+          variant="label"
+          whiteSpace="nowrap"
+          size={isMobile ? 'large' : 'small'}
+        >
+          {currentSymbol || 'Select token'}
         </Typography>
         {currentSymbol ? (
           <ChevronDownSVG maxHeight="1rem" maxWidth="1rem" width="100%" />

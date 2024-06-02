@@ -1,9 +1,10 @@
 import { Box, TextField } from '@interest-protocol/ui-kit';
-import { ChangeEvent, FC } from 'react';
+import { ChangeEvent, FC, useCallback, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { parseInputEventToNumberString } from '@/utils';
 
+import useEventListener from '../../../../hooks/use-event-listener';
 import { CreatePoolForm } from '../../pool-create.types';
 import HeaderInfo from './header-info';
 import { InputProps } from './input.types';
@@ -12,6 +13,14 @@ import SelectToken from './select-token';
 
 const Input: FC<InputProps> = ({ index }) => {
   const { register, setValue } = useFormContext<CreatePoolForm>();
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  const handleSetMobile = useCallback(() => {
+    const mediaIsMobile = !window.matchMedia('(max-width: 26.875rem)').matches;
+    setIsMobile(mediaIsMobile);
+  }, []);
+
+  useEventListener('resize', handleSetMobile, true);
 
   return (
     <Box
@@ -24,8 +33,8 @@ const Input: FC<InputProps> = ({ index }) => {
       borderColor="outlineVariant"
       justifyContent="space-between"
     >
-      <HeaderInfo index={index} />
-      <SelectToken index={index} />
+      <HeaderInfo index={index} isMobile={isMobile} />
+      <SelectToken index={index} isMobile={isMobile} />
       <Box
         display="flex"
         alignItems="flex-end"
@@ -33,7 +42,6 @@ const Input: FC<InputProps> = ({ index }) => {
         justifyContent="flex-end"
       >
         <TextField
-          pl="-1rem"
           fontSize="2xl"
           lineHeight="l"
           placeholder="0"
@@ -56,7 +64,8 @@ const Input: FC<InputProps> = ({ index }) => {
           }}
         />
       </Box>
-      <InputMaxButton index={index} />
+
+      {isMobile && <InputMaxButton index={index} />}
     </Box>
   );
 };
