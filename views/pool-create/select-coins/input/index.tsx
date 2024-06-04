@@ -24,48 +24,61 @@ const Input: FC<InputProps> = ({ index }) => {
 
   return (
     <Box
-      width="100%"
-      display="flex"
-      borderRadius="xs"
-      border="1px solid"
-      position="relative"
-      alignItems="center"
-      borderColor="outlineVariant"
-      justifyContent="space-between"
+      display=" flex"
+      flexDirection="column"
+      justifyContent="center"
+      alignContent="center"
     >
-      <HeaderInfo index={index} isMobile={isMobile} />
-      <SelectToken index={index} isMobile={isMobile} />
       <Box
+        width="100%"
         display="flex"
-        alignItems="flex-end"
-        flexDirection="column"
-        justifyContent="flex-end"
+        borderRadius="s"
+        border="2px solid"
+        position="relative"
+        alignItems="center"
+        borderColor="onSurface"
+        justifyContent="space-between"
       >
-        <TextField
-          fontSize="2xl"
-          lineHeight="l"
-          placeholder="0"
-          color="onSurface"
-          textAlign="right"
-          fontFamily="Satoshi"
-          {...register(`tokens.${index}.value`, {
-            onChange: (v: ChangeEvent<HTMLInputElement>) => {
-              setValue?.(
-                `tokens.${index}.value`,
-                parseInputEventToNumberString(v)
-              );
-            },
-          })}
-          fieldProps={{
-            mt: 'm',
-            width: '100%',
-            borderRadius: 'xs',
-            borderColor: 'transparent',
-          }}
-        />
+        <SelectToken index={index} isMobile={isMobile} />
+        <Box
+          mx="2xs"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <TextField
+            fontSize="2xl"
+            lineHeight="l"
+            placeholder="--"
+            color="onSurface"
+            textAlign="right"
+            fontFamily="Satoshi"
+            {...register(`tokens.${index}.value`, {
+              onChange: (v: ChangeEvent<HTMLInputElement>) => {
+                setValue?.(
+                  `tokens.${index}.value`,
+                  parseInputEventToNumberString(v)
+                );
+              },
+            })}
+            fieldProps={{
+              width: '100%',
+              borderRadius: 'xs',
+              borderColor: 'transparent',
+            }}
+          />
+        </Box>
       </Box>
-
-      {isMobile && <InputMaxButton index={index} />}
+      <Box
+        my="xs"
+        width="100%"
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+      >
+        <HeaderInfo index={index} isMobile={isMobile} />
+        <InputMaxButton index={index} />
+      </Box>
     </Box>
   );
 };
