@@ -24,6 +24,7 @@ const Input: FC<InputProps> = ({ index }) => {
 
   return (
     <Box
+      width="100%"
       display=" flex"
       flexDirection="column"
       justifyContent="center"
