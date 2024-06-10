@@ -1,5 +1,5 @@
 import { Box, Typography } from '@interest-protocol/ui-kit';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import pool from '@/components/svg/pool';
@@ -8,14 +8,14 @@ import { FixedPointMath } from '@/lib';
 import { DotErrorSVG } from '@/svg';
 import { isSui } from '@/utils';
 
-import { CreatePoolForm } from '../pool-create.types';
+import { CreatePoolForm, CreatePoolMessageEnum } from '../pool-create.types';
 
 const SelectCoinsError: FC = () => {
   const { coinsMap } = useWeb3();
-  const [error, setError] = useState('');
-  const { control } = useFormContext<CreatePoolForm>();
+  const { control, setValue, getValues } = useFormContext<CreatePoolForm>();
 
   const tokenList = useWatch({ control, name: 'tokens' });
+  const error = getValues('error');
 
   useEffect(() => {
     if (tokenList.length && coinsMap) {
@@ -39,8 +39,9 @@ const SelectCoinsError: FC = () => {
             coinsMap[coin1.type].decimals
           ).toFixed(5)
         ) {
-          setError(
-            `The ${coin1.symbol} amount is superior than your balance, try to reduce`
+          setValue(
+            'error',
+            `The ${coin1.symbol} ${CreatePoolMessageEnum.amountSuperior}`
           );
           return;
         }
@@ -52,8 +53,9 @@ const SelectCoinsError: FC = () => {
             coinsMap[coin1.type].decimals
           ).toFixed(5)
         ) {
-          setError(
-            `The ${coin1.symbol} amount is superior than safe balance, try to leave at least 0.1 MOVE`
+          setValue(
+            'error',
+            `The ${coin1.symbol} ${CreatePoolMessageEnum.safeBalanceAmount}`
           );
           return;
         }
@@ -66,8 +68,9 @@ const SelectCoinsError: FC = () => {
           coinsMap[coin1.type].decimals
         ).toFixed(5)
       ) {
-        setError(
-          `The ${coin1.symbol} amount is superior than your balance, try to reduce`
+        setValue(
+          'error',
+          `The ${coin1.symbol} ${CreatePoolMessageEnum.atLeastOneCoin}`
         );
         return;
       }
@@ -80,8 +83,9 @@ const SelectCoinsError: FC = () => {
             coinsMap[coin2.type].decimals
           ).toFixed(5)
         ) {
-          setError(
-            `The ${coin2.symbol} amount is superior than your balance, try to reduce`
+          setValue(
+            'error',
+            `The ${coin2.symbol} ${CreatePoolMessageEnum.amountSuperior}`
           );
           return;
         }
@@ -93,8 +97,9 @@ const SelectCoinsError: FC = () => {
             coinsMap[coin2.type].decimals
           ).toFixed(5)
         ) {
-          setError(
-            `The ${coin2.symbol} amount is superior than safe balance, try to leave at least 0.1 MOVE`
+          setValue(
+            'error',
+            `The ${coin2.symbol} ${CreatePoolMessageEnum.safeBalanceAmount}`
           );
           return;
         }
@@ -107,13 +112,13 @@ const SelectCoinsError: FC = () => {
           coinsMap[coin2.type].decimals
         ).toFixed(5)
       ) {
-        setError(
-          `The ${coin2.symbol} amount is superior than your balance, try to reduce`
+        setValue(
+          'error',
+          `The ${coin2.symbol} ${CreatePoolMessageEnum.amountSuperior}`
         );
         return;
       }
     }
-    setError('');
   }, [tokenList]);
 
   if (!error) return null;
