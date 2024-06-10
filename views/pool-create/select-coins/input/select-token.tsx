@@ -6,7 +6,7 @@ import TokenIcon from '@/components/token-icon';
 import { useNetwork } from '@/context/network';
 import { useModal } from '@/hooks/use-modal';
 import { CoinData } from '@/interface';
-import { ChevronDownSVG, ChevronRightSVG } from '@/svg';
+import { ChevronRightSVG } from '@/svg';
 import SelectTokenModal from '@/views/components/select-token-modal';
 
 import { CreatePoolForm } from '../../pool-create.types';
@@ -64,9 +64,9 @@ const SelectToken: FC<InputProps> = ({ index, isMobile }) => {
         fontSize="s"
         width="100%"
         variant="tonal"
+        bg={currentSymbol ? 'transparent' : 'highestContainer'}
         color="onSurface"
         borderRadius="xs"
-        bg="highestContainer"
         onClick={openModal}
         {...(currentSymbol && {
           PrefixIcon: (
@@ -83,13 +83,12 @@ const SelectToken: FC<InputProps> = ({ index, isMobile }) => {
           p="xs"
           variant="label"
           whiteSpace="nowrap"
+          width="100%"
           size={isMobile ? 'large' : 'small'}
         >
           {currentSymbol || 'Select token'}
         </Typography>
-        {currentSymbol ? (
-          <ChevronDownSVG maxHeight="1rem" maxWidth="1rem" width="100%" />
-        ) : (
+        {!currentSymbol && (
           <ChevronRightSVG maxHeight="1rem" maxWidth="1rem" width="100%" />
         )}
       </Button>

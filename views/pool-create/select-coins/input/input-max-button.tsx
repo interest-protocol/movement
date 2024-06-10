@@ -16,12 +16,13 @@ const InputMaxButton: FC<InputProps> = ({ index }) => {
 
   return (
     <Button
-      px="s"
-      variant="text"
-      borderRadius="xs"
-      border="1px solid"
+      px="xs"
+      py="2xs"
+      fontSize="xs"
+      variant="outline"
+      borderRadius="2xs"
       color="onSurface"
-      borderColor="outlineVariant"
+      disabled={!type}
       onClick={() =>
         setValue(
           `tokens.${index}.value`,
@@ -34,7 +35,7 @@ const InputMaxButton: FC<InputProps> = ({ index }) => {
         )
       }
     >
-      max
+      MAX
     </Button>
   );
 };

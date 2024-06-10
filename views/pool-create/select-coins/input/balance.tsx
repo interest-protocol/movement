@@ -1,4 +1,4 @@
-import { Box, Typography } from '@interest-protocol/ui-kit';
+import { Typography } from '@interest-protocol/ui-kit';
 import BigNumber from 'bignumber.js';
 import { FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -9,7 +9,7 @@ import { FixedPointMath } from '@/lib';
 import { CreatePoolForm } from '../../pool-create.types';
 import { InputProps } from './input.types';
 
-const HeaderInfo: FC<InputProps> = ({ index }) => {
+const Balance: FC<InputProps> = ({ index }) => {
   const { coinsMap } = useWeb3();
   const { control } = useFormContext<CreatePoolForm>();
 
@@ -22,21 +22,16 @@ const HeaderInfo: FC<InputProps> = ({ index }) => {
   );
 
   return (
-    <Box
-      gap="2xs"
-      display="flex"
+    <Typography
+      pt="2xs"
+      size="large"
+      variant="label"
+      fontSize="0.75rem"
       color="onSurface"
-      alignItems="center"
-      justifyContent="center"
     >
-      <Typography variant="label" size="medium">
-        Balance:
-      </Typography>
-      <Typography variant="label" size="medium">
-        {balance}
-      </Typography>
-    </Box>
+      Balance: {balance}
+    </Typography>
   );
 };
 
-export default HeaderInfo;
+export default Balance;
