@@ -7,7 +7,6 @@ import { TokenField } from '@/views/pool-create/select-coins/input/token-field';
 
 import useEventListener from '../../../../hooks/use-event-listener';
 import { CreatePoolForm } from '../../pool-create.types';
-import HeaderInfo from './balance';
 import Balance from './balance';
 import FormInputDollar from './form-input-dollar';
 import { InputProps } from './input.types';
@@ -40,7 +39,7 @@ const Input: FC<InputProps> = ({ index }) => {
         variant="outline"
         textAlign="right"
         status="none"
-        Bottom={<FormInputDollar index={1} />}
+        Bottom={<FormInputDollar index={index} />}
         {...register(`tokens.${index}.value`, {
           onChange: (v: ChangeEvent<HTMLInputElement>) => {
             setValue?.(
@@ -53,37 +52,6 @@ const Input: FC<InputProps> = ({ index }) => {
         ButtonMax={<InputMaxButton index={index} />}
         TokenIcon={<SelectToken index={index} isMobile={isMobile} />}
       />
-    </Box>
-  );
-
-  return (
-    <Box
-      width="100%"
-      display=" flex"
-      flexDirection="column"
-      justifyContent="center"
-      alignContent="center"
-    >
-      <Box
-        width="100%"
-        display="flex"
-        borderRadius="s"
-        border="2px solid"
-        position="relative"
-        alignItems="center"
-        borderColor="onSurface"
-        justifyContent="space-between"
-      ></Box>
-      <Box
-        my="xs"
-        width="100%"
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-      >
-        <HeaderInfo index={index} isMobile={isMobile} />
-        <InputMaxButton index={index} />
-      </Box>
     </Box>
   );
 };
