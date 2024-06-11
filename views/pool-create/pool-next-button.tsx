@@ -1,6 +1,6 @@
 import { Button, ProgressIndicator } from '@interest-protocol/ui-kit';
 import { useSuiClient } from '@mysten/dapp-kit';
-import { type FC, useEffect, useMemo, useState } from 'react';
+import { type FC, useMemo, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import { useNetwork } from '@/context/network';
@@ -17,10 +17,6 @@ const PoolNextButton: FC = () => {
 
   const error = getValues('error');
 
-  useEffect(() => {
-    if (error) return;
-  }, [tokens]);
-
   const checkIfPoolExists = async () => {
     try {
       setLoading(true);
@@ -32,7 +28,7 @@ const PoolNextButton: FC = () => {
         network
       );
     } catch (e) {
-      console.log((e instanceof Error ? e.message : e) as string);
+      setValue('error', (e instanceof Error ? e.message : e) as string);
     } finally {
       setLoading(false);
     }

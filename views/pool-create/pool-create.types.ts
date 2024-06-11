@@ -15,7 +15,7 @@ export interface CreatePoolForm {
   dex: string;
   isStable: boolean;
   step: CreatePoolStep;
-  error: string | null;
+  error?: string;
   explorerLink: string;
   type: 'CLAMM' | 'AMM';
   tokens: ReadonlyArray<Token>;
