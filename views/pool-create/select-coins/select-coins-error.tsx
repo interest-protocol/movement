@@ -6,7 +6,7 @@ import pool from '@/components/svg/pool';
 import { useWeb3 } from '@/hooks';
 import { FixedPointMath } from '@/lib';
 import { DotErrorSVG } from '@/svg';
-import { isSui } from '@/utils';
+import { getSafeValue, isSui } from '@/utils';
 
 import { CreatePoolForm, CreatePoolMessageEnum } from '../pool-create.types';
 
@@ -46,10 +46,21 @@ const SelectCoinsError: FC = () => {
           return;
         }
 
+        const safeValue1 = getSafeValue({
+          coinValue: coin1.value,
+          coinType: coin1.type,
+          balance: coinsMap[coin1.type].balance,
+          decimals: coinsMap[coin1.type].decimals,
+        });
+
+        console.log(
+          'Safe value :: ',
+          FixedPointMath.toNumber(safeValue1, coinsMap[coin1.type].decimals)
+        );
         if (
           +Number(coin1.value).toFixed(5) >
           +FixedPointMath.toNumber(
-            coinsMap[coin1.type].balance.minus(100_000_000),
+            safeValue1,
             coinsMap[coin1.type].decimals
           ).toFixed(5)
         ) {
