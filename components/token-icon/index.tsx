@@ -95,10 +95,12 @@ const TokenIcon: FC<TokenIconProps> = (props) => {
           )}
           <img
             width="100%"
+            height="100%"
             alt={symbol}
             src={TokenIcon}
             onLoad={stopLoad}
             onError={errorOnLoad}
+            style={{ objectFit: 'cover', position: 'relative' }}
           />
         </Box>
       </Box>
@@ -155,11 +157,13 @@ const TokenIcon: FC<TokenIconProps> = (props) => {
             </Box>
           )}
           <img
-            width="100%"
             alt={symbol}
+            width="100%"
+            height="100%"
             src={props.url}
             onLoad={stopLoad}
             onError={errorOnLoad}
+            style={{ objectFit: 'cover', position: 'relative' }}
           />
         </Box>
       </Box>
@@ -190,11 +194,13 @@ const TokenIcon: FC<TokenIconProps> = (props) => {
           )}
           {iconSrc && (
             <img
-              width="100%"
               alt={symbol}
+              width="100%"
+              height="100%"
               src={iconSrc}
               onLoad={stopLoad}
               onError={errorOnLoad}
+              style={{ objectFit: 'cover', position: 'relative' }}
             />
           )}
         </Box>

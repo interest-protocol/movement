@@ -48,48 +48,48 @@ const TokenModalItem: FC<TokenModalItemProps> = ({
 
   return (
     <Box
-      p="xl"
+      p="s"
       display="flex"
       color="textSoft"
       cursor="pointer"
       onClick={onSelect}
       alignItems="center"
       position="relative"
+      borderRadius="xs"
+      border="1px solid"
       justifyContent="space-between"
-      nHover={{ bg: `${colors.primary}14` }}
       transition="background 500ms ease-in-out"
       bg={selected ? `${colors.primary}14` : 'unset'}
+      borderColor={selected ? 'primary' : 'outlineVariant'}
+      nHover={{ bg: `${colors.primary}14`, borderColor: 'primary' }}
     >
       {isLoading && (
         <Box position="absolute" top="0" right="0" left="0" bottom="0">
           <Skeleton height="100%" />
         </Box>
       )}
-      <Box display="flex" alignItems="center">
+      <Box display="flex" alignItems="center" gap="xs">
         <TokenIcon
           type={type}
-          size="1.6rem"
+          size="1.3rem"
           symbol={symbol}
           network={network}
         />
-        <Box
-          ml="1rem"
-          display="flex"
-          flexDirection="column"
-          justifyContent="center"
-        >
-          <Typography variant="title" size="medium">
+        <Box display="flex" flexDirection="column" justifyContent="center">
+          <Typography
+            size="medium"
+            variant="title"
+            overflow="hidden"
+            whiteSpace="nowrap"
+            textOverflow="ellipsis"
+            maxWidth={['unset', '5rem']}
+          >
             {symbol}
           </Typography>
         </Box>
       </Box>
       <Box display="flex" alignItems="center" gap="xs">
-        <Button
-          isIcon
-          zIndex="10"
-          variant="text"
-          onClick={handleFavoriteTokens}
-        >
+        <Button isIcon p="0" variant="text" onClick={handleFavoriteTokens}>
           <FavoriteSVG
             width="100%"
             maxWidth="1.2rem"
