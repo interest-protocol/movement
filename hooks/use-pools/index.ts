@@ -6,7 +6,7 @@ import {
 import useSWR from 'swr';
 
 import { useNetwork } from '@/hooks/use-network';
-import { chunk, handleCustomPools } from '@/utils';
+import { chunk } from '@/utils';
 import { makeSWRKey } from '@/utils';
 
 import { useClammSdk } from '../use-clamm-sdk';
@@ -17,10 +17,7 @@ export const usePool = (poolId: string) => {
 
   return useSWR<InterestPool>(
     makeSWRKey([poolId, network], usePool.name),
-    async () => {
-      const pool = await clamm.getPool(poolId);
-      return handleCustomPools({ pool, network });
-    },
+    async () => clamm.getPool(poolId),
     {
       revalidateOnFocus: false,
       revalidateOnMount: true,
@@ -59,9 +56,7 @@ export const usePools = (page: number, findQuery = {}) => {
       }
 
       return {
-        pools: interestPools.map((x) =>
-          handleCustomPools({ pool: x, network })
-        ),
+        pools: interestPools,
         totalPages: data.totalPages,
         done: true,
       };
