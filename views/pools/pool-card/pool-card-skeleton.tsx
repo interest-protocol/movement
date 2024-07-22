@@ -81,7 +81,7 @@ const PoolCardSkeleton: FC = () => (
             type=""
             symbol=""
             key={v4()}
-            network={Network.DEVNET}
+            network={Network.MAINNET}
           />
         ))}
       </Box>

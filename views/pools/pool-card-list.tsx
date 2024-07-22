@@ -1,26 +1,23 @@
+import { InterestPool } from '@interest-protocol/clamm-sdk';
 import { Box, Button, Typography } from '@interest-protocol/ui-kit';
 import { useSuiClientContext } from '@mysten/dapp-kit';
-import { FilterQuery } from 'mongoose';
-import { inc, values } from 'ramda';
+import { inc } from 'ramda';
 import { FC, useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { useIsMounted } from 'usehooks-ts';
 import { v4 } from 'uuid';
 
 import { Network, PAGE_SIZE } from '@/constants';
 import { CATEGORY_POOLS } from '@/constants/pools';
-import { useWeb3 } from '@/hooks';
 import { useGetCoinMetadata } from '@/hooks/use-get-coin-metadata';
 import useGetMultipleTokenPriceBySymbol from '@/hooks/use-get-multiple-token-price-by-symbol';
 import { usePools } from '@/hooks/use-pools';
+import { useWeb3 } from '@/hooks/use-web3';
+import { FormFilterValue } from '@/views/pools/pool-card/pool-card.types';
 import { getAllSymbols } from '@/views/pools/pools.utils';
 
 import PoolCard from './pool-card';
-import { FormFilterValue } from './pool-card/pool-card.types';
 import PoolCardSkeleton from './pool-card/pool-card-skeleton';
-import PoolsCardListManager from './pool-card-list-manager';
 import {
-  AMMPoolWithMetadata,
   FilterTypeEnum,
   PoolCardListContentProps,
   PoolCardListProps,
@@ -28,11 +25,14 @@ import {
   PoolTabEnum,
 } from './pools.types';
 
+const DEFAULT_QUERY = [
+  { $or: [{ hooks: { $exists: false } }, { hooks: null }] },
+] as Record<any, any>[];
+
 const Pools: FC = () => {
-  const isMounted = useIsMounted();
   const [page, setPage] = useState(1);
-  const { network } = useSuiClientContext();
   const formContext = useFormContext<PoolForm>();
+  const { network } = useSuiClientContext();
 
   const filterProps = useWatch({
     control: formContext.control,
@@ -46,46 +46,43 @@ const Pools: FC = () => {
   const tokenList = formContext.getValues('tokenList');
 
   const query =
-    filterProps?.reduce((acc, filterProp) => {
+    filterProps.reduce((acc, filterProp) => {
       if (
         filterProp.type === FilterTypeEnum.CATEGORY &&
-        filterProp.value === FormFilterValue.official
+        filterProp.value !== FormFilterValue.all
       ) {
         const ids: string[] =
-          CATEGORY_POOLS[FormFilterValue.official][network as Network];
-
+          CATEGORY_POOLS[filterProp.value][network as Network];
         return [...acc, { poolObjectId: { $in: ids } }];
       }
 
       if (filterProp.type === FilterTypeEnum.ALGORITHM) {
-        const isVolatile = filterProp.value === FormFilterValue.volatile;
-
-        return [...acc, { isVolatile }];
+        const pred = filterProp.value !== FormFilterValue.volatile;
+        return [...acc, { isStable: pred }];
       }
 
       return acc;
-    }, [] as FilterQuery<any>[]) ?? [];
+    }, DEFAULT_QUERY) ?? DEFAULT_QUERY;
 
-  const [pools, setPools] = useState<Record<string, AMMPoolWithMetadata>>({});
-
+  const [pools, setPools] = useState<ReadonlyArray<InterestPool> | undefined>();
   const { data, isLoading: arePoolsLoading } = usePools(
     page,
     isFindingPool
       ? {
           $and: [
-            { coinX: { $in: tokenList?.map(({ type }) => type) } },
-            { coinY: { $in: tokenList?.map(({ type }) => type) } },
+            ...DEFAULT_QUERY,
+            ...tokenList.map(({ type }) => ({
+              coinTypes: { $in: [type] },
+            })),
           ],
         }
-      : query.length
-        ? {
-            $and: query,
-          }
-        : {}
+      : {
+          $and: query,
+        }
   );
 
   useEffect(() => {
-    setPools({});
+    setPools(undefined);
   }, [filterProps, isFindingPool]);
 
   const safeData = data ?? { pools: [], totalPages: 0 };
@@ -100,38 +97,24 @@ const Pools: FC = () => {
       safeData.totalPages &&
       page <= safeData.totalPages &&
       !!safeData.pools.length &&
-      !values(pools).some(({ poolObjectId }) => dataIds.includes(poolObjectId))
+      !pools?.some(({ poolObjectId }) => dataIds.includes(poolObjectId))
     )
-      setPools({
-        ...pools,
-        ...safeData.pools.reduce(
-          (acc, curr) => ({
-            ...acc,
-            [curr.poolObjectId]: curr,
-          }),
-          {} as Record<string, AMMPoolWithMetadata>
-        ),
-      });
+      setPools((pools) => (pools || [])?.concat(safeData.pools));
   }, [safeData, pools]);
 
   return (
-    <>
-      <PoolsCardListManager pools={pools} setPools={setPools} />
-      <PoolCardListContent
-        nextPage={nextPage}
-        pools={values(pools)}
-        done={isMounted() && !!data?.done}
-        totalItems={safeData?.totalPages ?? 0}
-        arePoolsLoading={arePoolsLoading || !data}
-        hasMore={(safeData?.totalPages ?? 0) - page * PAGE_SIZE > 0}
-      />
-    </>
+    <PoolCardListContent
+      pools={pools}
+      nextPage={nextPage}
+      totalItems={safeData?.totalPages ?? 0}
+      arePoolsLoading={arePoolsLoading || !data}
+      done={!!data?.done}
+    />
   );
 };
 
 const Position: FC = () => {
   const { coins } = useWeb3();
-  const isMounted = useIsMounted();
   const [page, setPage] = useState(1);
   const formContext = useFormContext<PoolForm>();
   const { network } = useSuiClientContext();
@@ -141,18 +124,11 @@ const Position: FC = () => {
     name: 'filterList',
   });
 
-  const isFindingPool = useWatch({
-    control: formContext.control,
-    name: 'isFindingPool',
-  });
-
-  const tokenList = formContext.getValues('tokenList');
-
   const filterQuery = filterProps.reduce(
     (acc, filterProp) => {
       if (
         filterProp.type === FilterTypeEnum.CATEGORY &&
-        filterProp.value === FormFilterValue.official
+        filterProp.value !== FormFilterValue.all
       ) {
         const ids: string[] =
           CATEGORY_POOLS[filterProp.value][network as Network];
@@ -160,9 +136,8 @@ const Position: FC = () => {
       }
 
       if (filterProp.type === FilterTypeEnum.ALGORITHM) {
-        const isVolatile = filterProp.value === FormFilterValue.volatile;
-
-        return [...acc, { isVolatile }];
+        const pred = filterProp.value !== FormFilterValue.volatile;
+        return [...acc, { isStable: pred }];
       }
 
       return acc;
@@ -188,21 +163,13 @@ const Position: FC = () => {
     },
   ];
 
-  const [pools, setPools] = useState<Record<string, AMMPoolWithMetadata>>({});
+  const [pools, setPools] = useState<ReadonlyArray<InterestPool>>([]);
   const { data, isLoading: arePoolsLoading } = usePools(page, {
-    $and: [
-      ...filterQuery,
-      ...(isFindingPool
-        ? [
-            { coinX: { $in: tokenList?.map(({ type }) => type) } },
-            { coinY: { $in: tokenList?.map(({ type }) => type) } },
-          ]
-        : []),
-    ],
+    $and: filterQuery,
   });
 
   useEffect(() => {
-    setPools({});
+    setPools([]);
   }, [filterProps]);
 
   const safeData = data ?? { pools: [], totalPages: 0 };
@@ -216,42 +183,30 @@ const Position: FC = () => {
       safeData &&
       safeData.totalPages &&
       page <= safeData.totalPages &&
-      !values(pools).some(({ poolObjectId }) => dataIds.includes(poolObjectId))
+      !pools.some(({ poolObjectId }) => dataIds.includes(poolObjectId))
     )
-      setPools({
-        ...pools,
-        ...safeData.pools.reduce(
-          (acc, curr) => ({
-            ...acc,
-            [curr.poolObjectId]: curr,
-          }),
-          {} as Record<string, AMMPoolWithMetadata>
-        ),
-      });
+      setPools((pools) => pools.concat(safeData.pools));
   }, [safeData, pools]);
 
   return (
-    <>
-      <PoolsCardListManager pools={pools} setPools={setPools} />
-      <PoolCardListContent
-        nextPage={nextPage}
-        pools={values(pools)}
-        done={isMounted() && !!data?.done}
-        totalItems={data?.totalPages ?? 0}
-        arePoolsLoading={arePoolsLoading || !pools}
-        hasMore={(data?.totalPages ?? 0) - page * PAGE_SIZE > 0}
-      />
-    </>
+    <PoolCardListContent
+      pools={pools}
+      nextPage={nextPage}
+      arePoolsLoading={arePoolsLoading || !pools}
+      totalItems={data?.totalPages ?? 0}
+      done={!!data?.done}
+    />
   );
 };
 
 const PoolCardListContent: FC<PoolCardListContentProps> = ({
-  done,
   pools,
   nextPage,
   totalItems,
   arePoolsLoading,
+  done,
 }) => {
+  const { network } = useSuiClientContext();
   const hasPoolsList = !!(pools && pools.length);
 
   const hasMore = !!(
@@ -260,20 +215,15 @@ const PoolCardListContent: FC<PoolCardListContentProps> = ({
     totalItems > Math.ceil(pools.length / PAGE_SIZE)
   );
 
-  const types = [
-    ...new Set(pools?.flatMap((pool) => [pool.coinX, pool.coinY])),
-  ];
-
-  const symbols = getAllSymbols(types);
+  const symbols = getAllSymbols(pools || [], network as Network);
 
   const { data: pricesRecord, isLoading: arePricesLoading } =
     useGetMultipleTokenPriceBySymbol(symbols);
 
   const { data: coinMetadataMap, isLoading: isCoinMetadataLoading } =
-    useGetCoinMetadata(types);
+    useGetCoinMetadata([...new Set(pools?.flatMap((pool) => pool.coinTypes))]);
 
   if (
-    !hasPoolsList &&
     (arePoolsLoading ||
       !pricesRecord ||
       !coinMetadataMap ||

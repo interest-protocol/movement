@@ -1,109 +1,109 @@
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { WalletAccount } from '@wallet-standard/base';
+import { useCurrentAccount } from '@mysten/dapp-kit';
+import { Transaction } from '@mysten/sui.js/transactions';
+import invariant from 'tiny-invariant';
 
-import { PACKAGES } from '@/constants';
-import { useNetwork } from '@/context/network';
-import { useWeb3 } from '@/hooks';
-import { FixedPointMath } from '@/lib';
 import {
-  createObjectsParameter,
-  getAmountMinusSlippage,
-  getSafeValue,
-} from '@/utils';
+  CLAMM_PACKAGE_ADDRESSES,
+  SCALLOP_WRAPPED_COINS_TREASURY_CAPS,
+  WRAPPED_CONVERSION_MAP,
+} from '@/constants/clamm';
+import { useClammSdk } from '@/hooks/use-clamm-sdk';
+import { useNetwork } from '@/hooks/use-network';
+import { useWeb3 } from '@/hooks/use-web3';
+import { getSafeValue, isScallopPool, isSui } from '@/utils';
 import { PoolForm } from '@/views/pools/pools.types';
 
-import { getAmmLpCoinAmount } from '../pool-form.utils';
-
 export const useDeposit = () => {
-  const network = useNetwork();
+  const clamm = useClammSdk();
   const { coinsMap } = useWeb3();
+  const currentAccount = useCurrentAccount();
+  const network = useNetwork();
+  const pkgs = CLAMM_PACKAGE_ADDRESSES[network];
 
-  return async (values: PoolForm, account: WalletAccount | null) => {
-    const { tokenList, pool, lpCoin, settings } = values;
+  return async (values: PoolForm): Promise<Transaction> => {
+    const { tokenList, pool, settings } = values;
 
-    if (!tokenList.length) throw new Error('No tokens ');
+    invariant(currentAccount, 'Must to connect your wallet');
+    invariant(tokenList.length, 'No tokens ');
 
-    if (!account) throw new Error('No account found');
+    const initTx = new Transaction();
 
-    const coin0 = tokenList[0];
-    const coin1 = tokenList[1];
-
-    if (!+coin0.value || !+coin1.value)
-      throw new Error('Check the coins value');
-
-    const walletCoin0 = coinsMap[coin0.type];
-    const walletCoin1 = coinsMap[coin1.type];
-
-    if (!walletCoin0 || !walletCoin1) throw new Error('Check the wallet coins');
-
-    const txb = new TransactionBlock();
-
-    const amount0 = getSafeValue({
-      coinValue: coin0.value,
-      coinType: coin0.type,
-      decimals: coin0.decimals,
-      balance: walletCoin0.balance,
+    const isScallop = isScallopPool({
+      poolObjectId: pool.poolObjectId,
+      network,
     });
 
-    const amount1 = getSafeValue({
-      coinValue: coin1.value,
-      coinType: coin1.type,
-      decimals: coin1.decimals,
-      balance: walletCoin1.balance,
+    const coins = tokenList.map(({ value, type }) => {
+      if (!+value) {
+        const rightType =
+          isScallop && !!WRAPPED_CONVERSION_MAP[network][type]
+            ? WRAPPED_CONVERSION_MAP[network][type]
+            : type;
+
+        const coinZero = initTx.moveCall({
+          target: `0x2::coin::zero`,
+          typeArguments: [rightType],
+        });
+
+        return coinZero;
+      }
+
+      const safeValue = getSafeValue({
+        coinValue: value,
+        coinType: type,
+        balance: coinsMap[type].balance,
+        decimals: coinsMap[type].decimals,
+      });
+
+      if (isSui(type)) {
+        const [splittedCoin] = initTx.splitCoins(initTx.gas, [
+          initTx.pure.u64(safeValue.toString()),
+        ]);
+
+        return splittedCoin;
+      }
+
+      const [firstCoin, ...otherCoins] = coinsMap[type].objects;
+
+      const firstCoinObject = initTx.object(firstCoin.coinObjectId);
+
+      if (otherCoins.length)
+        initTx.mergeCoins(
+          firstCoinObject,
+          otherCoins.map((coin) => coin.coinObjectId)
+        );
+
+      const [splittedCoin] = initTx.splitCoins(firstCoinObject, [
+        initTx.pure.u64(safeValue.toString()),
+      ]);
+
+      if (isScallop && !!WRAPPED_CONVERSION_MAP[network][type]) {
+        const wrappedType = WRAPPED_CONVERSION_MAP[network][type];
+        const cap = SCALLOP_WRAPPED_COINS_TREASURY_CAPS[network][wrappedType];
+
+        if (!cap) return splittedCoin;
+
+        const wrappedCoin = initTx.moveCall({
+          target: `${pkgs.SCALLOP_COINS_WRAPPER}::wrapped_scoin::mint`,
+          typeArguments: [type, wrappedType],
+          arguments: [initTx.object(cap), splittedCoin],
+        });
+
+        return wrappedCoin;
+      }
+
+      return splittedCoin;
     });
 
-    const coin0InList = createObjectsParameter({
-      coinsMap,
-      txb: txb,
-      type: coin0.type,
-      amount: amount0.toString(),
+    const { lpCoin, tx } = await clamm.addLiquidity({
+      coinsIn: coins,
+      tx: initTx,
+      pool: pool.poolObjectId,
+      slippage: +settings.slippage,
     });
 
-    const coin1InList = createObjectsParameter({
-      coinsMap,
-      txb: txb,
-      type: coin1.type,
-      amount: amount1.toString(),
-    });
+    tx.transferObjects([lpCoin], tx.pure.address(currentAccount.address));
 
-    const coin0In = txb.moveCall({
-      target: `${PACKAGES[network].UTILS}::utils::handle_coin_vector`,
-      typeArguments: [coin0.type],
-      arguments: [txb.makeMoveVec({ objects: coin0InList }), txb.pure(amount0)],
-    });
-
-    const coin1In = txb.moveCall({
-      target: `${PACKAGES[network].UTILS}::utils::handle_coin_vector`,
-      typeArguments: [coin1.type],
-      arguments: [txb.makeMoveVec({ objects: coin1InList }), txb.pure(amount1)],
-    });
-
-    const lpAmount = getAmmLpCoinAmount(
-      FixedPointMath.toBigNumber(coin0.value, coin0.decimals),
-      FixedPointMath.toBigNumber(coin1.value, coin1.decimals),
-      pool.balanceX,
-      pool.balanceY,
-      pool.lpCoinSupply
-    );
-
-    const minimumAmount = getAmountMinusSlippage(lpAmount, settings.slippage);
-
-    const [lpCoinOut, coinXOut, coinYOut] = txb.moveCall({
-      target: `${PACKAGES[network].DEX}::interest_protocol_amm::add_liquidity`,
-      typeArguments: [coin0.type, coin1.type, lpCoin.type],
-      arguments: [
-        txb.object(pool.poolId),
-        coin0In,
-        coin1In,
-        txb.pure(minimumAmount),
-      ],
-    });
-
-    txb.transferObjects(
-      [lpCoinOut, coinXOut, coinYOut],
-      txb.pure(account.address)
-    );
-
-    return txb;
+    return tx;
   };
 };

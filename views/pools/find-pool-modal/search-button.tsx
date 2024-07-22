@@ -2,7 +2,9 @@ import { Box, Button, Typography } from '@interest-protocol/ui-kit';
 import { FC, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-import { PoolForm, PoolToken } from '../pools.types';
+import { CoinData } from '@/interface';
+
+import { PoolForm } from '../pools.types';
 import { FindPoolModalProps } from './find-pool-modal.types';
 
 const SearchButton: FC<FindPoolModalProps> = ({ closeModal }) => {
@@ -11,7 +13,7 @@ const SearchButton: FC<FindPoolModalProps> = ({ closeModal }) => {
 
   const tokenListData = getValues('tokenList');
 
-  const hasEmptyKeys = (token: ReadonlyArray<PoolToken>) =>
+  const hasEmptyKeys = (token: ReadonlyArray<CoinData>) =>
     token.some((obj) => !obj.type);
 
   const handleFindPool = () => {

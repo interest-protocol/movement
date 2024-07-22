@@ -1,16 +1,13 @@
+import { PoolMetadata } from '@interest-protocol/clamm-sdk';
 import { ReactNode } from 'react';
 
 import { CoinMetadataWithType } from '@/interface';
-
-import { AMMPoolWithMetadata } from '../pools.types';
 
 export enum FormFilterValue {
   'official' = 'official',
   'all' = 'all',
   'stable' = 'stable',
   'volatile' = 'volatile',
-  'clamm' = 'clamm',
-  'amm' = 'amm',
 }
 
 export interface PoolCardHeaderProps {
@@ -31,7 +28,7 @@ export interface PoolCardTradeProps {
 }
 
 export interface PoolCardProps {
-  pool: AMMPoolWithMetadata;
+  pool: PoolMetadata;
   prices: Record<string, number>;
   coinMetadata: Record<string, CoinMetadataWithType>;
 }

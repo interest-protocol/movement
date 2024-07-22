@@ -1,9 +1,10 @@
-import type { ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 export interface PoolDetailAccordionProps {
-  title: string;
+  title?: string;
   noBorder?: boolean;
   children: ReactNode;
+  loading?: boolean;
 }
 
 export interface PoolDetailAccordionItemData {
@@ -14,15 +15,13 @@ export interface PoolDetailAccordionItemData {
 }
 export interface PoolDetailAccordionItemStandardProps
   extends PoolDetailAccordionItemData {
-  loading: boolean;
   content: string | number;
 }
 
 export interface PoolDetailAccordionItemCoinProps {
-  type: string;
   value: string;
+  type: string;
   symbol: string;
-  coinName: string;
   conversion?: string;
   percentage?: string;
 }

@@ -8,7 +8,7 @@ import useClickOutsideListenerRef from '@/hooks/use-click-outside-listener-ref';
 import { ChevronDownSVG } from '@/svg';
 
 import { CreatePoolForm } from '../pool-create.types';
-import PoolCreateButton from '../pool-next-button';
+import PoolCreateButton from '../pool-create-button';
 import { DATA } from './select-dex.data';
 
 const BOX_ID = 'select-dex';
@@ -50,9 +50,9 @@ const SelectDex: FC = () => {
           p="2xl"
           mx="auto"
           gap="2rem"
-          bg="container"
           maxWidth="33rem"
           borderRadius="xs"
+          bg="lowestContainer"
         >
           <Typography variant="body" size="large" color="onSurface">
             Select Dex

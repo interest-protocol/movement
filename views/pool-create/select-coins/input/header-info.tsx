@@ -1,15 +1,15 @@
-import { Typography } from '@interest-protocol/ui-kit';
+import { Box, Typography } from '@interest-protocol/ui-kit';
 import BigNumber from 'bignumber.js';
 import { FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import { useWeb3 } from '@/hooks/use-web3';
-import { FixedPointMath } from '@/lib';
+import { FixedPointMath, Rounding } from '@/lib';
 
 import { CreatePoolForm } from '../../pool-create.types';
 import { InputProps } from './input.types';
 
-const Balance: FC<InputProps> = ({ index }) => {
+const HeaderInfo: FC<InputProps> = ({ index }) => {
   const { coinsMap } = useWeb3();
   const { control } = useFormContext<CreatePoolForm>();
 
@@ -18,20 +18,29 @@ const Balance: FC<InputProps> = ({ index }) => {
 
   const balance = FixedPointMath.toNumber(
     BigNumber(coinsMap[type]?.balance || '0'),
-    coinsMap[type]?.decimals ?? decimals
+    coinsMap[type]?.decimals ?? decimals,
+    Rounding.ROUND_DOWN
   );
 
   return (
-    <Typography
-      pt="2xs"
-      size="large"
-      variant="label"
-      fontSize="0.75rem"
+    <Box
+      gap="2xs"
+      top="0.2rem"
+      display="flex"
+      right="1.2rem"
       color="onSurface"
+      position="absolute"
+      alignItems="center"
+      justifyContent="center"
     >
-      Balance: {balance}
-    </Typography>
+      <Typography variant="label" size="small">
+        Balance:
+      </Typography>
+      <Typography variant="label" size="small" color="primary">
+        {balance}
+      </Typography>
+    </Box>
   );
 };
 
-export default Balance;
+export default HeaderInfo;

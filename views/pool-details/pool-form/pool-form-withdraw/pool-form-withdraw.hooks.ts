@@ -1,87 +1,126 @@
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { WalletAccount } from '@wallet-standard/base';
+import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
+import { Transaction, TransactionResult } from '@mysten/sui.js/transactions';
 
-import { PACKAGES } from '@/constants';
-import { useNetwork } from '@/context/network';
-import { useWeb3 } from '@/hooks';
-import { FixedPointMath } from '@/lib';
 import {
-  createObjectsParameter,
-  getAmountMinusSlippage,
-  getSafeValue,
-} from '@/utils';
+  CLAMM_PACKAGE_ADDRESSES,
+  SCALLOP_WRAPPED_COINS_TREASURY_CAPS,
+  WRAPPED_CONVERSION_MAP,
+} from '@/constants/clamm';
+import { useClammSdk } from '@/hooks/use-clamm-sdk';
+import { useNetwork } from '@/hooks/use-network';
+import { useWeb3 } from '@/hooks/use-web3';
+import { getCoinOfValue, getSafeValue, isScallopPool } from '@/utils';
 import { PoolForm } from '@/views/pools/pools.types';
 
-import { getAmmXYAmount } from '../pool-form.utils';
-
 export const useWithdraw = () => {
-  const network = useNetwork();
+  const clamm = useClammSdk();
   const { coinsMap } = useWeb3();
+  const suiClient = useSuiClient();
+  const currentAccount = useCurrentAccount();
+  const network = useNetwork();
+  const pkgs = CLAMM_PACKAGE_ADDRESSES[network];
 
-  return async (values: PoolForm, account: WalletAccount | null) => {
-    const { tokenList, pool, lpCoin, settings } = values;
+  return async (values: PoolForm): Promise<Transaction> => {
+    const { tokenList, pool, lpCoin: coin, tokenSelected } = values;
 
-    if (!+lpCoin.value || !tokenList.length) throw new Error('No tokens ');
+    if (!+coin.value || !tokenList.length) throw new Error('No tokens ');
 
-    const coin0 = tokenList[0];
-    const coin1 = tokenList[1];
+    if (!currentAccount) throw new Error('No account found');
 
-    if (!account) throw new Error('No account found');
-
-    const lpCoinWallet = coinsMap[lpCoin.type];
+    const lpCoinWallet = coinsMap[coin.type];
 
     if (!lpCoinWallet) throw new Error('Check the wallet Lp coins');
 
-    const txb = new TransactionBlock();
+    const initTx = new Transaction();
 
-    const amount = getSafeValue({
-      coinType: lpCoin.type,
-      coinValue: lpCoin.value,
-      decimals: lpCoin.decimals,
+    const coinValue = getSafeValue({
+      coinValue: coin.value,
+      coinType: coin.type,
       balance: lpCoinWallet.balance,
+      decimals: lpCoinWallet.decimals,
+    }).toString();
+
+    const lpCoin = await getCoinOfValue({
+      suiClient,
+      coinValue,
+      tx: initTx,
+      coinType: coin.type,
+      account: currentAccount.address,
     });
 
-    const lpCoinInList = createObjectsParameter({
-      coinsMap,
-      txb: txb,
-      type: lpCoin.type,
-      amount: amount.toString(),
+    let coinsOut = [];
+    let tx: Transaction;
+
+    const isScallop = isScallopPool({
+      poolObjectId: pool.poolObjectId,
+      network,
     });
 
-    const lpCoinIn = txb.moveCall({
-      target: `${PACKAGES[network].UTILS}::utils::handle_coin_vector`,
-      typeArguments: [lpCoin.type],
-      arguments: [txb.makeMoveVec({ objects: lpCoinInList }), txb.pure(amount)],
-    });
+    if (tokenSelected) {
+      const convertedType = WRAPPED_CONVERSION_MAP[network][tokenSelected];
 
-    const [expectedXAmount, expectedYAmount] = getAmmXYAmount(
-      FixedPointMath.toBigNumber(lpCoin.value),
-      pool.balanceX,
-      pool.balanceY,
-      pool.lpCoinSupply
-    );
-    const minimumXAmount = getAmountMinusSlippage(
-      expectedXAmount,
-      settings.slippage
-    );
-    const minimumYAmount = getAmountMinusSlippage(
-      expectedYAmount,
-      settings.slippage
-    );
+      const response = await clamm.removeLiquidityOneCoin({
+        lpCoin,
+        tx: initTx,
+        pool: pool.poolObjectId,
+        coinOutType: convertedType || tokenSelected,
+      });
 
-    const [coinXOut, coinYOut] = txb.moveCall({
-      target: `${PACKAGES[network].DEX}::interest_protocol_amm::remove_liquidity`,
-      typeArguments: [coin0.type, coin1.type, lpCoin.type],
-      arguments: [
-        txb.object(pool.poolId),
-        lpCoinIn,
-        txb.pure(minimumXAmount),
-        txb.pure(minimumYAmount),
-      ],
-    });
+      tx = response.tx;
 
-    txb.transferObjects([coinXOut, coinYOut], txb.pure(account.address));
+      if (convertedType) {
+        const cap = SCALLOP_WRAPPED_COINS_TREASURY_CAPS[network][convertedType];
 
-    return txb;
+        const unwrappedCoin = initTx.moveCall({
+          target: `${pkgs.SCALLOP_COINS_WRAPPER}::wrapped_scoin::burn`,
+          typeArguments: [tokenSelected, convertedType],
+          arguments: [initTx.object(cap), response.coinOut],
+        });
+
+        coinsOut = [unwrappedCoin];
+      } else {
+        coinsOut = [response.coinOut];
+      }
+    } else {
+      const response = await clamm.removeLiquidity({
+        lpCoin,
+        tx: initTx,
+        pool: pool.poolObjectId,
+      });
+      tx = response.tx;
+      if (isScallop) {
+        coinsOut = [] as TransactionResult[];
+
+        pool.coinTypes.forEach((x, index) => {
+          const wrappedType = WRAPPED_CONVERSION_MAP[network][x];
+
+          if (!wrappedType) {
+            coinsOut.push(response.coinsOut[index]);
+            return;
+          }
+
+          const cap = SCALLOP_WRAPPED_COINS_TREASURY_CAPS[network][wrappedType];
+
+          if (!cap) {
+            coinsOut.push(response.coinsOut[index]);
+            return;
+          }
+
+          const unwrappedCoin = initTx.moveCall({
+            target: `${pkgs.SCALLOP_COINS_WRAPPER}::wrapped_scoin::burn`,
+            typeArguments: [x, wrappedType],
+            arguments: [initTx.object(cap), response.coinsOut[index]],
+          });
+
+          coinsOut.push(unwrappedCoin);
+        });
+      } else {
+        coinsOut = response.coinsOut;
+      }
+    }
+
+    tx.transferObjects(coinsOut, tx.pure.address(currentAccount.address));
+
+    return tx;
   };
 };

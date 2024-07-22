@@ -7,7 +7,7 @@ import useSWR from 'swr';
 
 import { FixedPointMath } from '@/lib';
 import { ZERO_BIG_NUMBER } from '@/utils';
-import slippage from '@/views/swap/manage-slippage/slippage';
+import slippage from '@/views/swap/swap-settings/slippage';
 
 import { useDeposit } from '../pool-form-deposit/pool-form-deposit.hooks';
 import { useWithdraw } from '../pool-form-withdraw/pool-form-withdraw.hooks';
@@ -30,10 +30,10 @@ const PoolPreview: FC<PoolPreviewProps> = ({
     async () => {
       if (!currentAccount) return;
 
-      const txb = await action(getValues(), currentAccount);
+      const tx = await action(getValues());
 
       const inspect = await client.devInspectTransactionBlock({
-        transactionBlock: txb,
+        transactionBlock: tx,
         sender: currentAccount.address,
       });
 
