@@ -12,7 +12,7 @@ export const ALGORITHM_TYPE: Array<FilterItemProps> = [
   },
 ];
 
-export const CATEGORY = [
+export const CATEGORY_TYPE: Array<FilterItemProps> = [
   {
     type: FilterTypeEnum.CATEGORY,
     value: FormFilterValue.official,
@@ -23,15 +23,18 @@ export const CATEGORY = [
   },
 ];
 
-export const FILTERS_DATA = [
+export const ALGORITHM_DATA = [
   {
     label: 'Algorithm',
     data: ALGORITHM_TYPE,
-    type: FilterTypeEnum.ALGORITHM,
+    type: FilterTypeEnum['ALGORITHM'],
   },
+];
+
+export const CATEGORY_DATA = [
   {
-    label: 'Category',
-    data: CATEGORY,
-    type: FilterTypeEnum.CATEGORY,
+    label: 'category',
+    data: CATEGORY_TYPE,
+    type: FilterTypeEnum['CATEGORY'],
   },
 ];

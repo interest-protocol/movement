@@ -1,6 +1,5 @@
 import { Box, TooltipWrapper, Typography } from '@interest-protocol/ui-kit';
 import { FC } from 'react';
-import Skeleton from 'react-loading-skeleton';
 
 import { ClipboardSVG, InformationCircleSVG } from '@/svg';
 import { copyToClipboard } from '@/utils';
@@ -9,7 +8,7 @@ import { PoolDetailAccordionItemStandardProps } from './accordion.types';
 
 const PoolDetailsCollapseItemStandard: FC<
   PoolDetailAccordionItemStandardProps
-> = ({ label, content, popupInfo, isCopyClipBoard, labelColor, loading }) => {
+> = ({ label, content, popupInfo, isCopyClipBoard, labelColor }) => {
   const clipBoardSuccessMessage = 'Address copied to the clipboard';
 
   return (
@@ -50,7 +49,7 @@ const PoolDetailsCollapseItemStandard: FC<
             whiteSpace="nowrap"
             textOverflow="ellipsis"
           >
-            {loading ? <Skeleton width="5rem" /> : content}
+            {content}
           </Typography>
         </Box>
         {popupInfo && (

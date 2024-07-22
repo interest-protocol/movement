@@ -3,29 +3,31 @@ import { FC, useState } from 'react';
 
 import { PoolDetailsTabOption } from '../pool-details.types';
 import DetailTabs from './components/detail-tabs';
+import PoolInfoAdvanced from './pool-info-advanced';
 import PoolInfoDetail from './pool-info-detail';
 
 const PoolInfo: FC = () => {
-  const pool = {
-    poolType: 'amm',
-  };
   const [poolDetailsView, setPoolDetailsView] = useState<PoolDetailsTabOption>(
     PoolDetailsTabOption.Detail
   );
 
-  const handleTabChange = (index: PoolDetailsTabOption) =>
-    setPoolDetailsView(index);
-
   return (
-    <Box color="onSurface" borderRadius="xs" bg="container">
+    <Box
+      color="onSurface"
+      borderRadius="xs"
+      bg="lowestContainer"
+      width="fill-available"
+    >
       <DetailTabs
-        onChangeTab={handleTabChange}
+        onChangeTab={setPoolDetailsView}
         defaultTabIndex={poolDetailsView}
-        items={['Pool Detail'].concat(
-          pool?.poolType === 'amm' ? [] : ['Advance Details']
-        )}
+        items={['Pool Detail', 'Advance Details']}
       />
-      {poolDetailsView === PoolDetailsTabOption.Detail && <PoolInfoDetail />}
+      {poolDetailsView === PoolDetailsTabOption.Detail ? (
+        <PoolInfoDetail />
+      ) : (
+        <PoolInfoAdvanced />
+      )}
     </Box>
   );
 };

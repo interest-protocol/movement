@@ -1,9 +1,10 @@
+import { InterestPool } from '@interest-protocol/clamm-sdk';
 import { createContext, FC, PropsWithChildren, useContext } from 'react';
 
 import { useGetCoinMetadata } from '@/hooks/use-get-coin-metadata';
 import useGetMultipleTokenPriceBySymbol from '@/hooks/use-get-multiple-token-price-by-symbol';
 import { usePool } from '@/hooks/use-pools';
-import { AmmPool, CoinMetadataWithType } from '@/interface';
+import { CoinMetadataWithType } from '@/interface';
 
 import { getAllSymbols } from '../pools/pools.utils';
 
@@ -13,7 +14,7 @@ interface PoolDetailsProviderProps {
 
 interface PoolDetailsContext {
   loading: boolean;
-  pool: AmmPool | null | undefined;
+  pool: InterestPool | null | undefined;
   prices: Record<string, number> | undefined;
   metadata: Record<string, CoinMetadataWithType> | undefined;
 }
@@ -42,15 +43,15 @@ export const PoolDetailsProvider: FC<
     data: metadata,
     error: metadataError,
     isLoading: isMetadataLoading,
-  } = useGetCoinMetadata(pool ? Object.values(pool.coinTypes) : []);
-
-  const types = pool ? [pool.coinTypes.coinX, pool.coinTypes.coinY] : [];
+  } = useGetCoinMetadata(pool ? pool.coinTypes : []);
 
   const {
     data: prices,
     isLoading: isPricesLoading,
     error: pricesError,
-  } = useGetMultipleTokenPriceBySymbol(getAllSymbols(types));
+  } = useGetMultipleTokenPriceBySymbol(
+    getAllSymbols(pool ? pool.coinTypes : [])
+  );
 
   const loading =
     isPoolLoading ||

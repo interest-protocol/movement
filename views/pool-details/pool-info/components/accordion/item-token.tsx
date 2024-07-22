@@ -8,12 +8,11 @@ import { Network } from '@/constants';
 import { PoolDetailAccordionItemCoinProps } from './accordion.types';
 
 const ItemCoin: FC<PoolDetailAccordionItemCoinProps> = ({
-  coinName,
+  type,
+  value,
+  symbol,
   percentage,
   conversion,
-  value,
-  type,
-  symbol,
 }) => {
   const { network } = useSuiClientContext();
 
@@ -24,15 +23,16 @@ const ItemCoin: FC<PoolDetailAccordionItemCoinProps> = ({
       alignItems="center"
       justifyContent="space-between"
     >
-      <Box display="flex" alignItems="center" justifyContent="center" gap="xs">
+      <Box display="flex" alignItems="center" justifyContent="center" gap="s">
         <TokenIcon
           withBg
+          rounded
           type={type}
           symbol={symbol}
           network={network as Network}
         />
         <Typography size="medium" variant="body" mr="0.5rem">
-          {coinName}
+          {symbol}
         </Typography>
       </Box>
       <Box display="flex">

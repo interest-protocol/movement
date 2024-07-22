@@ -1,26 +1,23 @@
-import { useSuiClient } from '@mysten/dapp-kit';
-import { getSuiObjectResponseFields } from '@polymedia/suits';
-import { keys } from 'ramda';
+import {
+  InterestPool,
+  PoolMetadata,
+  QueryPoolsReturn,
+} from '@interest-protocol/clamm-sdk';
 import useSWR from 'swr';
 
-import { AmmPool, AmmServerPool } from '@/interface';
-import { convertServerPoolToClientPool, fetchPool, makeSWRKey } from '@/utils';
+import { useNetwork } from '@/hooks/use-network';
+import { chunk } from '@/utils';
+import { makeSWRKey } from '@/utils';
 
-import { UsePoolsFetchReturn, UsePoolsReturn } from './use-pools.types';
-import { parsePool } from './use-pools.utils';
+import { useClammSdk } from '../use-clamm-sdk';
 
-export const usePool = (parentId: string) => {
-  const client = useSuiClient();
+export const usePool = (poolId: string) => {
+  const clamm = useClammSdk();
+  const network = useNetwork();
 
-  return useSWR<AmmPool | null>(
-    makeSWRKey([], usePool.name + parentId),
-    async () => {
-      if (!parentId) return null;
-
-      const pool = (await fetchPool(client, parentId)) as AmmServerPool | null;
-
-      return pool ? convertServerPoolToClientPool(pool) : null;
-    },
+  return useSWR<InterestPool>(
+    makeSWRKey([poolId, network], usePool.name),
+    async () => clamm.getPool(poolId),
     {
       revalidateOnFocus: false,
       revalidateOnMount: true,
@@ -29,19 +26,39 @@ export const usePool = (parentId: string) => {
   );
 };
 
-export const usePools = (page: number = 1, findQuery = {}) =>
-  useSWR<UsePoolsReturn>(
-    `/api/auth/v1/get-pools?page=${page}&find=${JSON.stringify(findQuery)}`,
+interface UsePoolsReturn extends QueryPoolsReturn<InterestPool> {
+  done: boolean;
+}
+
+export const usePools = (page: number, findQuery = {}) => {
+  const clamm = useClammSdk();
+  const network = useNetwork();
+  return useSWR<UsePoolsReturn>(
+    makeSWRKey([page, network, findQuery], usePools.name),
     async () => {
       const res = await fetch(
-        `/api/auth/v1/get-pools?page=${page}&find=${JSON.stringify(findQuery)}`
+        `api/auth/v1/get-all-clamm-pools?page=${page}&limit=50&find=${JSON.stringify(
+          findQuery
+        )}`
       );
-      const { pools, totalPages } = (await res.json?.()) as UsePoolsFetchReturn;
+
+      const data = (await res.json()) as QueryPoolsReturn<PoolMetadata>;
+
+      // @dev The RPC has a limit of requests
+      const batches = chunk(data.pools, 20);
+
+      const interestPools = [];
+
+      for (const batch of batches) {
+        const pools = await clamm.getPoolsFromMetadata(batch);
+
+        interestPools.push(...pools);
+      }
 
       return {
+        pools: interestPools,
+        totalPages: data.totalPages,
         done: true,
-        totalPages,
-        pools: pools ?? [],
       };
     },
     {
@@ -50,25 +67,4 @@ export const usePools = (page: number = 1, findQuery = {}) =>
       refreshWhenHidden: false,
     }
   );
-
-export const usePoolsMetadata = (poolStateIds: Record<string, string>) => {
-  const suiClient = useSuiClient();
-
-  return useSWR(poolStateIds, async () => {
-    const data = await suiClient.multiGetObjects({
-      ids: keys(poolStateIds),
-      options: { showContent: true },
-    });
-
-    return data.reduce(
-      (acc, state) => ({
-        ...acc,
-        [poolStateIds[state.data!.objectId]]: {
-          poolId: poolStateIds[state.data!.objectId],
-          ...parsePool(getSuiObjectResponseFields(state)),
-        },
-      }),
-      {} as Record<string, AmmPool>
-    );
-  });
 };

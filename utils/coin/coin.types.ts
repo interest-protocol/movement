@@ -24,3 +24,11 @@ export interface GetSafeValueArgs {
   decimals: number;
   balance: BigNumber;
 }
+
+export interface GetCoinOfValueArgs {
+  suiClient: SuiClient;
+  txb: TransactionBlock;
+  account: string;
+  coinType: string;
+  coinValue: number | bigint | string;
+}

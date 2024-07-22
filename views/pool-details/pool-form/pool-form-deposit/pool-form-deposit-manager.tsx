@@ -1,88 +1,62 @@
 import { Box, Typography } from '@interest-protocol/ui-kit';
-import BigNumber from 'bignumber.js';
-import { FC, useEffect } from 'react';
+import { type FC, useEffect } from 'react';
 import { useWatch } from 'react-hook-form';
 import { useFormContext } from 'react-hook-form';
+import { useDebounce } from 'use-debounce';
 
-import { FixedPointMath } from '@/lib';
+import { useClammSdk } from '@/hooks/use-clamm-sdk';
+import { FixedPointMath, Rounding } from '@/lib';
 import { DotErrorSVG } from '@/svg';
-import {
-  getAmmOptimalCoin0Value,
-  getAmmOptimalCoin1Value,
-} from '@/views/pool-details/pool-form/pool-form.utils';
+import { parseBigNumberish } from '@/utils';
 import { PoolForm } from '@/views/pools/pools.types';
 
 const DepositManager: FC = () => {
-  const { control, setValue, getValues } = useFormContext<PoolForm>();
+  const clamm = useClammSdk();
+  const { control, getValues, setValue } = useFormContext<PoolForm>();
+  const [tokens] = useDebounce(useWatch({ control, name: 'tokenList' }), 800);
 
-  const token0Amount = useWatch({ control, name: 'tokenList.0.value' });
-  const token1Amount = useWatch({ control, name: 'tokenList.1.value' });
+  const handleQuoteAddLiquidity = async () => {
+    try {
+      setValue('isFindingPool', true);
+      const poolId = getValues('pool.poolObjectId');
+      const lpCoinDecimals = getValues('lpCoin.decimals');
 
-  const input0IsLocked = useWatch({ control, name: 'tokenList.0.locked' });
-  const input1IsLocked = useWatch({ control, name: 'tokenList.1.locked' });
+      const value = await clamm.quoteAddLiquidity({
+        pool: poolId,
+        amounts: tokens.map(({ value, decimals }) =>
+          BigInt(
+            FixedPointMath.toBigNumber(value, decimals)
+              .decimalPlaces(0)
+              .toString()
+          )
+        ),
+      });
 
-  // user is typing on input0
+      setValue(
+        'lpCoin.value',
+        String(
+          FixedPointMath.toNumber(
+            parseBigNumberish(value),
+            lpCoinDecimals,
+            Rounding.ROUND_DOWN
+          )
+        )
+      );
+    } catch (e) {
+      setValue('lpCoin.value', (e as Error).message);
+    } finally {
+      setValue('isFindingPool', false);
+    }
+  };
+
   useEffect(() => {
-    const { tokenList, pool } = getValues();
-
-    if (!tokenList.length || !pool) return;
-    const coin0 = tokenList[0];
-    const coin1 = tokenList[1];
-
-    if (input1IsLocked) return;
-
-    if (!+token0Amount) {
-      setValue('tokenList.1.value', '0');
+    if (tokens.some(({ value }) => Number(value))) {
+      handleQuoteAddLiquidity();
       return;
     }
 
-    const optimalAmountY = getAmmOptimalCoin1Value(
-      FixedPointMath.toBigNumber(token0Amount, coin0.decimals),
-      pool.balanceX,
-      pool.balanceY
-    );
-
-    const n = optimalAmountY.dividedBy(new BigNumber(10).pow(coin1.decimals));
-
-    const roundedN =
-      n.lt(new BigNumber(1)) && !coin1.decimals
-        ? 0
-        : n.decimalPlaces(coin1.decimals, BigNumber.ROUND_UP).toNumber();
-
-    setValue('tokenList.1.value', roundedN.toString());
-  }, [token0Amount, input1IsLocked]);
-
-  // user is typing on input1
-  useEffect(() => {
-    const { tokenList, pool } = getValues();
-
-    if (!tokenList.length || !pool) return;
-
-    const coin0 = tokenList[0];
-    const coin1 = tokenList[1];
-
-    if (input0IsLocked) return;
-
-    if (!+token1Amount) {
-      setValue('tokenList.0.value', '0');
-      return;
-    }
-
-    const optimalAmountX = getAmmOptimalCoin0Value(
-      FixedPointMath.toBigNumber(token1Amount, coin1.decimals),
-      pool.balanceX,
-      pool.balanceY
-    );
-
-    const n = optimalAmountX.dividedBy(new BigNumber(10).pow(coin0.decimals));
-
-    const roundedN =
-      n.lt(new BigNumber(1)) && !coin0.decimals
-        ? 0
-        : n.decimalPlaces(coin0.decimals, BigNumber.ROUND_UP).toNumber();
-
-    setValue('tokenList.0.value', roundedN.toString());
-  }, [token1Amount, input0IsLocked]);
+    if (Number(getValues('lpCoin.value'))) setValue('lpCoin.value', '0');
+  }, [tokens]);
 
   const error = useWatch({ control, name: 'error' });
 

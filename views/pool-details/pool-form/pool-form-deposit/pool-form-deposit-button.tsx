@@ -3,29 +3,34 @@ import {
   useCurrentAccount,
   useSignTransactionBlock,
   useSuiClient,
+  useSuiClientContext,
 } from '@mysten/dapp-kit';
 import { FC, useEffect } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
-import { EXPLORER_URL } from '@/constants';
-import { useNetwork } from '@/context/network';
-import { useDialog, useWeb3 } from '@/hooks';
+import { EXPLORER_URL, Network } from '@/constants';
+import { useDialog } from '@/hooks/use-dialog';
 import { useModal } from '@/hooks/use-modal';
-import { FixedPointMath } from '@/lib';
-import { isSui, showTXSuccessToast, throwTXIfNotSuccessful } from '@/utils';
+import { useWeb3 } from '@/hooks/use-web3';
+import { FixedPointMath, Rounding } from '@/lib';
+import {
+  showTXSuccessToast,
+  signAndExecute,
+  throwTXIfNotSuccessful,
+  waitForTx,
+} from '@/utils';
 import { PoolForm } from '@/views/pools/pools.types';
 
 import { usePoolDetails } from '../../pool-details.context';
-import { logDepositPool } from '../pool-form.utils';
 import PoolPreview from '../pool-form-preview';
 import { useDeposit } from './pool-form-deposit.hooks';
 
 const PoolFormDepositButton: FC = () => {
-  const network = useNetwork();
   const deposit = useDeposit();
-  const client = useSuiClient();
+  const suiClient = useSuiClient();
   const { pool } = usePoolDetails();
-  const account = useCurrentAccount();
+  const { network } = useSuiClientContext();
+  const currentAccount = useCurrentAccount();
   const { coinsMap, mutate } = useWeb3();
   const { dialog, handleClose } = useDialog();
   const signTransactionBlock = useSignTransactionBlock();
@@ -34,38 +39,28 @@ const PoolFormDepositButton: FC = () => {
 
   const tokenList = useWatch({ control, name: 'tokenList' });
 
-  const ableToClick = tokenList.some(({ value }) => Number(value));
-
   const handleDeposit = async () => {
     try {
-      if (!account) return;
+      if (!currentAccount) return;
 
-      const txb = await deposit(getValues(), account);
+      const depositTxb = await deposit(getValues());
 
-      const { signature, transactionBlockBytes } =
-        await signTransactionBlock.mutateAsync({
-          transactionBlock: txb,
-          account: account,
-        });
-
-      const tx = await client.executeTransactionBlock({
-        signature,
-        options: { showEffects: true },
-        requestType: 'WaitForEffectsCert',
-        transactionBlock: transactionBlockBytes,
+      const tx = await signAndExecute({
+        txb: depositTxb,
+        suiClient,
+        currentAccount,
+        signTransactionBlock,
       });
 
       throwTXIfNotSuccessful(tx);
 
-      await showTXSuccessToast(tx, network);
+      showTXSuccessToast(tx, network as Network);
 
-      setValue('explorerLink', EXPLORER_URL[network](`/txblock/${tx.digest}`));
+      await waitForTx({ suiClient, digest: tx.digest });
 
-      logDepositPool(
-        account.address,
-        getValues('tokenList.0'),
-        getValues('tokenList.1'),
-        tx.digest
+      setValue(
+        'explorerLink',
+        `${EXPLORER_URL[network as Network]}/tx/${tx.digest}`
       );
     } finally {
       mutate();
@@ -117,41 +112,12 @@ const PoolFormDepositButton: FC = () => {
       )
         return;
 
-      if (isSui(coin1.type)) {
-        if (
-          +Number(coin1.value).toFixed(5) >
-          +FixedPointMath.toNumber(
-            coinsMap[coin1.type].balance,
-            coinsMap[coin1.type].decimals
-          ).toFixed(5)
-        ) {
-          setValue(
-            'error',
-            `The ${coin1.symbol} amount is superior than your balance, try to reduce`
-          );
-          return;
-        }
-
-        if (
-          +Number(coin1.value).toFixed(5) >
-          +FixedPointMath.toNumber(
-            coinsMap[coin1.type].balance.minus(100_000_000),
-            coinsMap[coin1.type].decimals
-          ).toFixed(5)
-        ) {
-          setValue(
-            'error',
-            `The ${coin1.symbol} amount is superior than safe balance, try to leave at least 0.1 MOVE`
-          );
-          return;
-        }
-      }
-
       if (
         +Number(coin1.value).toFixed(5) >
         +FixedPointMath.toNumber(
           coinsMap[coin1.type].balance,
-          coinsMap[coin1.type].decimals
+          coinsMap[coin1.type].decimals,
+          Rounding.ROUND_DOWN
         ).toFixed(5)
       ) {
         setValue(
@@ -161,41 +127,12 @@ const PoolFormDepositButton: FC = () => {
         return;
       }
 
-      if (isSui(coin2.type)) {
-        if (
-          +Number(coin2.value).toFixed(5) >
-          +FixedPointMath.toNumber(
-            coinsMap[coin2.type].balance,
-            coinsMap[coin2.type].decimals
-          ).toFixed(5)
-        ) {
-          setValue(
-            'error',
-            `The ${coin2.symbol} amount is superior than your balance, try to reduce`
-          );
-          return;
-        }
-
-        if (
-          +Number(coin2.value).toFixed(5) >
-          +FixedPointMath.toNumber(
-            coinsMap[coin2.type].balance.minus(100_000_000),
-            coinsMap[coin2.type].decimals
-          ).toFixed(5)
-        ) {
-          setValue(
-            'error',
-            `The ${coin2.symbol} amount is superior than safe balance, try to leave at least 0.1 MOVE`
-          );
-          return;
-        }
-      }
-
       if (
         +Number(coin2.value).toFixed(5) >
         +FixedPointMath.toNumber(
           coinsMap[coin2.type].balance,
-          coinsMap[coin2.type].decimals
+          coinsMap[coin2.type].decimals,
+          Rounding.ROUND_DOWN
         ).toFixed(5)
       ) {
         setValue(
@@ -212,7 +149,6 @@ const PoolFormDepositButton: FC = () => {
 
   const addDeposit = () =>
     !error &&
-    ableToClick &&
     setModal(
       <Motion
         animate={{ scale: 1 }}
@@ -235,9 +171,9 @@ const PoolFormDepositButton: FC = () => {
       mt="xl"
       mx="auto"
       variant="filled"
+      disabled={!!error}
       width="max-content"
       onClick={addDeposit}
-      disabled={!!error || !ableToClick}
     >
       Deposit
     </Button>

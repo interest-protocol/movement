@@ -1,16 +1,12 @@
-import { AmmPool } from '@/interface';
-import { AMMPool } from '@/server/model/amm-pool';
+import { InterestPool, PoolMetadata } from '@interest-protocol/clamm-sdk';
+
+import { CoinData } from '@/interface';
+import { FormFilterValue } from '@/views/pools/pool-card/pool-card.types';
 
 import { ISwapSettings } from '../swap/swap.types';
-import { FormFilterValue } from './pool-card/pool-card.types';
-
-export interface AMMPoolWithMetadata extends AMMPool {
-  metadata?: AmmPool;
-}
 
 export enum FilterTypeEnum {
   ALGORITHM = 'algorithm',
-  POOL_TYPE = 'pool_type',
   CATEGORY = 'category',
 }
 
@@ -29,20 +25,12 @@ export interface PoolCardListProps {
 }
 
 export interface PoolCardListContentProps {
-  done: boolean;
-  hasMore?: boolean;
   totalItems?: number;
   nextPage?: () => void;
   arePoolsLoading: boolean;
-  pools?: ReadonlyArray<AMMPoolWithMetadata>;
+  pools?: readonly InterestPool[];
+  done: boolean;
 }
-
-export interface CoinData {
-  type: string;
-  symbol: string;
-  decimals: number;
-}
-
 export interface PoolToken extends CoinData {
   value: string;
   locked: boolean;
@@ -57,7 +45,7 @@ export interface PoolForm {
   settings: ISwapSettings;
   tokenList: ReadonlyArray<PoolToken>;
   filterList: ReadonlyArray<FilterItemProps>;
-  pool: AmmPool;
+  pool: PoolMetadata;
 }
 
 export interface FilterItemProps {

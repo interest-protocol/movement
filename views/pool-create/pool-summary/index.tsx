@@ -1,12 +1,12 @@
 import { Box, Button, Typography } from '@interest-protocol/ui-kit';
+import { useSuiClientContext } from '@mysten/dapp-kit';
 import { useRouter } from 'next/router';
 import { FC } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { v4 } from 'uuid';
 
 import { TokenIcon } from '@/components';
-import { Routes, RoutesEnum } from '@/constants';
-import { useNetwork } from '@/context/network';
+import { Network, Routes, RoutesEnum } from '@/constants';
 import { CircleCheckSVG } from '@/svg';
 import { formatMoney } from '@/utils';
 
@@ -15,9 +15,10 @@ import PoolSummaryButton from './pool-summary-button';
 
 const PoolSummary: FC = () => {
   const { push } = useRouter();
-  const network = useNetwork();
+  const { network } = useSuiClientContext();
   const { getValues } = useFormContext<CreatePoolForm>();
-  const { type, isStable, tokens } = getValues();
+
+  const { isStable, tokens } = getValues();
 
   return (
     <Box
@@ -25,9 +26,9 @@ const PoolSummary: FC = () => {
       p="xl"
       mx="auto"
       gap="2rem"
-      bg="container"
       borderRadius="xs"
       maxWidth="27.25rem"
+      bg="lowestContainer"
     >
       <Typography
         mb="3xl"
@@ -67,7 +68,7 @@ const PoolSummary: FC = () => {
           alignItems="center"
           justifyContent="space-between"
         >
-          {type}
+          CLAMM
         </Box>
       </Box>
       <Box
@@ -136,14 +137,14 @@ const PoolSummary: FC = () => {
       </Box>
       <Box
         p="s"
-        gap="s"
+        gap="l"
         display="flex"
         bg="lowContainer"
         color="onSurface"
         borderRadius="xs"
         flexDirection="column"
       >
-        {tokens?.map(({ symbol, value }) => (
+        {tokens?.map(({ type, symbol, value }) => (
           <Box
             key={v4()}
             display="flex"
@@ -151,17 +152,12 @@ const PoolSummary: FC = () => {
             justifyContent="space-between"
           >
             <Box display="flex" alignItems="center" gap="s">
-              <Box
-                display="flex"
-                width="2.5rem"
-                height="2.5rem"
-                borderRadius="xs"
-                alignItems="center"
-                bg="lowestContainer"
-                justifyContent="center"
-              >
-                <TokenIcon symbol={symbol} type={type} network={network} />
-              </Box>
+              <TokenIcon
+                withBg
+                type={type}
+                symbol={symbol}
+                network={network as Network}
+              />
               <Typography variant="body" size="medium">
                 {symbol}
               </Typography>

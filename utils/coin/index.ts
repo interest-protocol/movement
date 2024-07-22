@@ -1,11 +1,13 @@
 import type { Token } from '@interest-protocol/sui-tokens';
 import { CoinStruct } from '@mysten/sui.js/dist/cjs/client';
+import { TransactionResult } from '@mysten/sui.js/dist/cjs/transactions';
 import {
   formatAddress,
   normalizeStructTag,
   normalizeSuiObjectId,
   SUI_TYPE_ARG,
 } from '@mysten/sui.js/utils';
+import { removeLeadingZeros } from '@polymedia/suits';
 import BigNumber from 'bignumber.js';
 import { propOr } from 'ramda';
 
@@ -23,6 +25,7 @@ import { fetchCoinMetadata } from '../coin-metadata';
 import { getBasicCoinMetadata } from '../fn';
 import {
   CreateVectorParameterArgs,
+  GetCoinOfValueArgs,
   GetCoinsArgs,
   GetSafeValueArgs,
 } from './coin.types';
@@ -221,3 +224,39 @@ export const coinDataToCoinObject = (coinData: CoinData): CoinObject => ({
   metadata: { name: formatAddress(coinData.type), description: '' },
   objects: [],
 });
+
+export const safePoolSymbolFromType = (type: string): string =>
+  type.split('::')[2];
+
+export async function getCoinOfValue({
+  suiClient,
+  coinValue,
+  coinType,
+  txb,
+  account,
+}: GetCoinOfValueArgs): Promise<TransactionResult> {
+  let coinOfValue: TransactionResult;
+  coinType = removeLeadingZeros(coinType);
+  if (isSui(coinType)) {
+    coinOfValue = txb.splitCoins(txb.gas, [txb.pure.u64(coinValue)]);
+  } else {
+    const paginatedCoins = await getCoins({
+      suiClient,
+      coinType,
+      cursor: null,
+      account,
+    });
+
+    // Merge all coins into one
+    const [firstCoin, ...otherCoins] = paginatedCoins;
+    const firstCoinInput = txb.object(firstCoin.coinObjectId);
+    if (otherCoins.length > 0) {
+      txb.mergeCoins(
+        firstCoinInput,
+        otherCoins.map((coin) => coin.coinObjectId)
+      );
+    }
+    coinOfValue = txb.splitCoins(firstCoinInput, [txb.pure.u64(coinValue)]);
+  }
+  return coinOfValue;
+}

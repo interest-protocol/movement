@@ -1,13 +1,11 @@
 import { Box, Typography } from '@interest-protocol/ui-kit';
+import { useSuiClientContext } from '@mysten/dapp-kit';
 import { pathOr } from 'ramda';
 import { FC } from 'react';
-import Skeleton from 'react-loading-skeleton';
 import { v4 } from 'uuid';
 
 import { TokenIcon } from '@/components';
-import { COINS } from '@/constants';
-import { useNetwork } from '@/context/network';
-import { getSymbolByType, isSui } from '@/utils';
+import { Network } from '@/constants';
 
 import { PoolCardTokenInfoProps } from './pool-card.types';
 
@@ -15,61 +13,57 @@ const PoolCardInfo: FC<PoolCardTokenInfoProps> = ({
   coinTypes,
   coinMetadata,
 }) => {
-  const network = useNetwork();
+  const { network } = useSuiClientContext();
 
   return (
-    <Box
-      my="xl"
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      flexDirection="column"
-    >
+    <Box>
       <Box
-        mb="m"
-        gap="m"
+        my="xl"
         display="flex"
-        height="2.5rem"
         justifyContent="center"
         alignItems="center"
-        alignSelf="stretch"
+        flexDirection="column"
       >
-        {coinTypes.map((type) => (
-          <TokenIcon
-            withBg
-            key={v4()}
-            network={network}
-            symbol={
-              isSui(type)
-                ? 'MOVE'
-                : coinMetadata[type]?.symbol ?? getSymbolByType(type)
-            }
-            {...(COINS.some((coin) => coin.type === type)
-              ? { type }
-              : { url: coinMetadata[type]?.iconUrl ?? '' })}
-          />
-        ))}
-      </Box>
-      <Box display="flex" flexDirection="column" alignItems="center">
-        <Typography
-          gap="xs"
-          size="small"
-          variant="body"
+        <Box
+          mb="m"
+          gap="m"
           display="flex"
-          fontSize="1rem"
-          fontWeight="700"
-          color="onSurface"
-          textAlign="center"
-          lineHeight="1.7rem"
+          height="2.5rem"
+          justifyContent="center"
+          alignItems="center"
+          alignSelf="stretch"
         >
-          {coinTypes.flatMap((type, index) => [
-            index ? <>{' • '}</> : '',
-            pathOr('', [type, 'symbol'], coinMetadata).replace(
-              'SUI',
-              'MOVE'
-            ) || <Skeleton width="4rem" />,
-          ])}
-        </Typography>
+          {coinTypes.map((type) => (
+            <TokenIcon
+              withBg
+              key={v4()}
+              type={type}
+              network={network as Network}
+              url={coinMetadata[type]?.iconUrl}
+              symbol={coinMetadata[type]?.symbol ?? ''}
+            />
+          ))}
+        </Box>
+        <Box display="flex" flexDirection="column" alignItems="center">
+          <Typography
+            size="small"
+            variant="body"
+            fontSize="1rem"
+            fontWeight="700"
+            lineHeight="1.7rem"
+            color="onSurface"
+          >
+            {coinTypes.reduce(
+              (acc, type) =>
+                `${acc ? `${acc} • ` : ''}${pathOr(
+                  '',
+                  [type, 'symbol'],
+                  coinMetadata
+                )}`,
+              ''
+            )}
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );

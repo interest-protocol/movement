@@ -1,11 +1,19 @@
+import { VolatilePool } from '@interest-protocol/clamm-sdk';
 import { Box } from '@interest-protocol/ui-kit';
-import { propOr } from 'ramda';
+import BigNumber from 'bignumber.js';
+import { pathOr } from 'ramda';
+import { FC } from 'react';
+import { useEffect, useState } from 'react';
 import { v4 } from 'uuid';
 
-import { CoinMetadataWithType } from '@/interface';
-import { FixedPointMath } from '@/lib';
-import { formatDollars, formatMoney } from '@/utils';
-import { getLiquidity } from '@/views/pools/pool-card/pool-card.utils';
+import { useClammSdk } from '@/hooks/use-clamm-sdk';
+import { FixedPointMath, Rounding } from '@/lib';
+import { formatDollars, formatMoney, parseBigNumberish } from '@/utils';
+import {
+  getStableLiquidity,
+  getVolatileLiquidity,
+  isStablePool,
+} from '@/views/pools/pool-card/pool-card.utils';
 
 import { usePoolDetails } from '../pool-details.context';
 import Accordion from './components/accordion';
@@ -15,43 +23,54 @@ import ItemToken from './components/accordion/item-token';
 import { POOL_INFORMATION, POOL_STATISTICS } from './pool-info.data';
 import PoolInfoLoading from './pool-info-loading';
 
-const PoolDetail = () => {
+const PoolInfoDetail: FC = () => {
+  const clamm = useClammSdk();
   const { pool, metadata, prices, loading } = usePoolDetails();
+  const [virtualPrice, setVirtualPrice] = useState(
+    pool?.isStable
+      ? BigNumber(0)
+      : BigNumber(pathOr('0', ['state', 'virtualPrice'], pool))
+  );
+
+  useEffect(() => {
+    if (pool && pool.isStable) {
+      clamm
+        .getStablePoolVirtualPrice(pool)
+        .then((vp) => setVirtualPrice(BigNumber(vp.toString())))
+        .catch();
+    }
+  }, [pool?.isStable]);
 
   if (loading) return <PoolInfoLoading />;
 
-  const infoData = pool
-    ? [
-        pool.poolId ?? '',
-        pool.poolType.toLocaleUpperCase() ?? '',
-        pool.isVolatile ? 'Volatile' : 'Stable',
-      ]
-    : ['', '', ''];
+  if (!pool || !metadata || !prices)
+    return (
+      <Box p="xl" textAlign="center">
+        Pool not found
+      </Box>
+    );
 
-  const liquidity = pool ? getLiquidity(pool, metadata || {}, prices || {}) : 0;
+  const symbol = metadata[pool.coinTypes[0]].symbol ?? '';
 
-  const virtualPrice =
-    pool && liquidity
-      ? FixedPointMath.toBigNumber(liquidity, 9)
-          .div(pool.lpCoinSupply)
-          .toString()
-      : '0';
+  const firstCoinUSDPrice = symbol ? prices[symbol.toLowerCase()] : 0;
 
-  const statsData = liquidity
-    ? [formatDollars(liquidity), formatDollars(+virtualPrice, 9)]
-    : ['', ''];
+  const infoData = [
+    pool.poolObjectId,
+    'CLAMM',
+    pool.isStable ? 'Stable' : 'Volatile',
+  ];
 
-  const coinXMetadata: CoinMetadataWithType = propOr(
-    {} as typeof metadata,
-    pool ? pool.coinTypes.coinX : '',
-    metadata || {}
-  );
+  const liquidity = isStablePool(pool, pool.isStable)
+    ? getStableLiquidity(pool, metadata, prices)
+    : getVolatileLiquidity(pool, metadata, prices);
 
-  const coinYMetadata: CoinMetadataWithType = propOr(
-    {} as typeof metadata,
-    pool ? pool.coinTypes.coinY : '',
-    metadata || {}
-  );
+  const statsData = [
+    liquidity ? formatDollars(liquidity) : 'N/A',
+    formatDollars(
+      FixedPointMath.toNumber(virtualPrice, 18, Rounding.ROUND_DOWN),
+      9
+    ),
+  ];
 
   return (
     <Box>
@@ -62,7 +81,6 @@ const PoolDetail = () => {
           <ItemStandard
             key={v4()}
             label={label}
-            loading={loading}
             popupInfo={popupInfo}
             content={infoData[index]}
             isCopyClipBoard={isCopyClipBoard}
@@ -76,7 +94,6 @@ const PoolDetail = () => {
           <ItemStandard
             key={v4()}
             label={label}
-            loading={loading}
             popupInfo={popupInfo}
             content={statsData[index]}
             isCopyClipBoard={isCopyClipBoard}
@@ -86,66 +103,106 @@ const PoolDetail = () => {
       <Accordion title="Pool Composition" noBorder>
         {pool && prices && (
           <>
-            {[
-              {
-                type: coinXMetadata?.type,
-                symbol:
-                  coinXMetadata?.symbol === 'MOVE'
-                    ? 'MOVE'
-                    : coinXMetadata?.symbol,
-                balance: pool.balanceX,
-                decimals: pool.decimalsX,
-                price: propOr(
-                  0,
-                  (coinXMetadata?.symbol === 'MOVE'
-                    ? 'MOVE'
-                    : coinXMetadata.symbol
-                  )?.toLowerCase(),
-                  prices
-                ) as number,
-              },
-              {
-                type: coinYMetadata?.type,
-                symbol: coinYMetadata?.symbol,
-                balance: pool.balanceY,
-                decimals: pool.decimalsY,
-                price: propOr(
-                  0,
-                  (coinYMetadata?.symbol === 'MOVE'
-                    ? 'MOVE'
-                    : coinYMetadata.symbol
-                  )?.toLowerCase(),
-                  prices
-                ) as number,
-              },
-            ].map(({ type, symbol, balance, decimals, price }) => (
-              <ItemToken
-                key={v4()}
-                type={type}
-                symbol={symbol}
-                percentage={
-                  (+(
-                    (FixedPointMath.toNumber(balance.times(price), decimals) /
-                      liquidity) *
-                    100
-                  ).toFixed(2)).toPrecision() + '%'
-                }
-                coinName={symbol}
-                value={formatMoney(FixedPointMath.toNumber(balance, decimals))}
-                conversion={
-                  price
-                    ? formatDollars(
-                        FixedPointMath.toNumber(balance.times(price), decimals)
-                      )
-                    : 'N/A'
-                }
-              />
-            ))}
+            {pool.coinTypes.map((type, index) => {
+              const balance = pool.state.balances[index];
+              const symbol = metadata[type].symbol ?? '';
+
+              const price = prices[symbol.toLowerCase()];
+
+              if (!pool.isStable) {
+                const price =
+                  (pool as VolatilePool).state.coinStateMap[type]?.price || 0n;
+                const priceN = FixedPointMath.toNumber(
+                  BigNumber(price.toString()),
+                  18,
+                  Rounding.ROUND_DOWN
+                );
+
+                const realPrice = priceN * firstCoinUSDPrice;
+
+                return (
+                  <ItemToken
+                    key={v4()}
+                    type={type}
+                    symbol={symbol}
+                    value={formatMoney(
+                      FixedPointMath.toNumber(BigNumber(String(balance)), 18)
+                    )}
+                    conversion={
+                      realPrice
+                        ? formatDollars(
+                            FixedPointMath.toNumber(
+                              BigNumber(String(balance)).times(realPrice),
+                              18,
+                              Rounding.ROUND_DOWN
+                            )
+                          )
+                        : 'N/A'
+                    }
+                    percentage={
+                      realPrice
+                        ? (+(
+                            (FixedPointMath.toNumber(
+                              parseBigNumberish(balance).times(realPrice),
+                              parseBigNumberish(clamm.PRECISION).e!,
+                              Rounding.ROUND_DOWN
+                            ) /
+                              liquidity) *
+                            100
+                          ).toFixed(2)).toPrecision() + '%'
+                        : 'N/A'
+                    }
+                  />
+                );
+              }
+
+              return (
+                <ItemToken
+                  key={v4()}
+                  type={type}
+                  symbol={symbol}
+                  value={formatMoney(
+                    FixedPointMath.toNumber(
+                      BigNumber(String(balance)),
+                      18,
+                      Rounding.ROUND_DOWN
+                    )
+                  )}
+                  conversion={
+                    price
+                      ? formatDollars(
+                          FixedPointMath.toNumber(
+                            BigNumber(String(balance)).times(price),
+                            18,
+                            Rounding.ROUND_DOWN
+                          )
+                        )
+                      : 'N/A'
+                  }
+                  percentage={
+                    price
+                      ? (+(
+                          (FixedPointMath.toNumber(
+                            parseBigNumberish(balance).times(price),
+                            parseBigNumberish(clamm.PRECISION).e!,
+                            Rounding.ROUND_DOWN
+                          ) /
+                            liquidity) *
+                          100
+                        ).toFixed(2)).toPrecision() + '%'
+                      : 'N/A'
+                  }
+                />
+              );
+            })}
             <ItemStandard
-              loading={loading}
               label="Total Supply"
               labelColor="outline"
-              content={formatMoney(FixedPointMath.toNumber(pool.lpCoinSupply))}
+              content={formatMoney(
+                FixedPointMath.toNumber(
+                  parseBigNumberish(pool.state.lpCoinSupply)
+                )
+              )}
             />
           </>
         )}
@@ -154,4 +211,4 @@ const PoolDetail = () => {
   );
 };
 
-export default PoolDetail;
+export default PoolInfoDetail;

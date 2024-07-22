@@ -11,3 +11,10 @@ export interface SignAndExecuteArgs {
   signTransactionBlock: ReturnType<typeof useSignTransactionBlock>;
   options?: SuiTransactionBlockResponseOptions;
 }
+
+export interface WaitForTxArgs {
+  suiClient: SuiClient;
+  digest: string;
+  timeout?: number;
+  pollInterval?: number;
+}

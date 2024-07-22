@@ -3,104 +3,89 @@ import {
   useCurrentAccount,
   useSignTransactionBlock,
   useSuiClient,
+  useSuiClientContext,
 } from '@mysten/dapp-kit';
 import { useRouter } from 'next/router';
-import { reverse } from 'ramda';
 import { FC } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import invariant from 'tiny-invariant';
 
-import { EXPLORER_URL, Routes, RoutesEnum } from '@/constants';
-import { useNetwork } from '@/context/network';
-import { useDialog } from '@/hooks';
-import { signAndExecute, throwTXIfNotSuccessful } from '@/utils';
-
-import { useCreateAmmPool, useCreateLpCoin } from '../pool-create.hooks';
-import { CreatePoolForm } from '../pool-create.types';
+import { Network, Routes, RoutesEnum } from '@/constants';
+import { useClammSdk } from '@/hooks/use-clamm-sdk';
+import { useDialog } from '@/hooks/use-dialog';
+import { useWeb3 } from '@/hooks/use-web3';
 import {
-  extractCoinDataFromTx,
-  extractPoolDataFromTx,
-  isPoolsCoinsOrdered,
-  logCreatePool,
-} from '../pool-create.utils';
+  showTXSuccessToast,
+  signAndExecute,
+  throwTXIfNotSuccessful,
+  waitForTx,
+} from '@/utils';
+
+import {
+  useCreateLpCoin,
+  useCreateStablePool,
+  useCreateVolatilePool,
+} from '../pool-create.hooks';
+import { CreatePoolForm, Token } from '../pool-create.types';
+import { extractCoinData, extractPoolDataFromTx } from '../pool-create.utils';
 
 const PoolSummaryButton: FC = () => {
-  const network = useNetwork();
   const { push } = useRouter();
-  const suiClient = useSuiClient();
+  const client = useSuiClient();
+  const clamm = useClammSdk();
+  const { network } = useSuiClientContext();
   const createLpCoin = useCreateLpCoin();
-  const createAmmPool = useCreateAmmPool();
   const signTxb = useSignTransactionBlock();
   const currentAccount = useCurrentAccount();
   const { dialog, handleClose } = useDialog();
-  const { getValues, resetField, setValue } = useFormContext<CreatePoolForm>();
+  const createStablePool = useCreateStablePool();
+  const createVolatilePool = useCreateVolatilePool();
+  const { control } = useFormContext<CreatePoolForm>();
+  const { mutate } = useWeb3();
 
-  const gotoExplorer = () => {
-    window.open(getValues('explorerLink'), '_blank', 'noopener,noreferrer');
-
-    resetField('explorerLink');
-  };
+  const form = useWatch({ control });
 
   const onCreatePool = async () => {
-    const { tokens, isStable, type } = getValues();
+    invariant(form && form.tokens?.length, 'No data');
+    invariant(currentAccount, 'No wallet');
 
-    invariant(type === 'AMM', 'Pool is not valid');
-    invariant(currentAccount, 'You must login in your wallet');
+    const lpCoinTx = await createLpCoin(form.tokens as ReadonlyArray<Token>);
 
-    const isOrdered = await isPoolsCoinsOrdered(tokens, suiClient, network);
-
-    const orderedTokens = isOrdered ? tokens : reverse(tokens);
-
-    const txbLpCoin = await createLpCoin(orderedTokens, isStable);
-
-    const txLpCoin = await signAndExecute({
-      suiClient,
+    const lpCoinTx2 = await signAndExecute({
+      txb: lpCoinTx,
       currentAccount,
-      txb: txbLpCoin,
+      suiClient: client,
       signTransactionBlock: signTxb,
     });
 
-    throwTXIfNotSuccessful(txLpCoin);
+    const { treasuryCap, coinType } = await extractCoinData(lpCoinTx2, client);
 
-    const { treasuryCap, coinType } = await extractCoinDataFromTx(
-      txLpCoin,
-      suiClient
-    );
-
-    invariant(treasuryCap, 'Error on load Treasury cap');
-
-    const txb = await createAmmPool(
-      orderedTokens,
-      coinType,
+    const txb = await (form.isStable ? createStablePool : createVolatilePool)(
+      form.tokens as ReadonlyArray<Token>,
       treasuryCap,
-      isStable
+      coinType
     );
 
-    const tx = await signAndExecute({
+    const tx2 = await signAndExecute({
       txb,
-      suiClient,
       currentAccount,
+      suiClient: client,
       signTransactionBlock: signTxb,
     });
 
-    throwTXIfNotSuccessful(tx);
+    throwTXIfNotSuccessful(tx2);
 
-    setValue('explorerLink', EXPLORER_URL[network](`/txblock/${tx.digest}`));
+    const poolId = await extractPoolDataFromTx(tx2, client);
 
-    const poolId = await extractPoolDataFromTx(tx, suiClient, network);
+    await clamm.savePool(poolId);
 
-    await fetch('/api/auth/v1/save-pool', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        poolId,
-        network,
-      }),
-    });
+    showTXSuccessToast(tx2, network as Network);
+
+    await waitForTx({ suiClient: client, digest: tx2.digest });
+
+    mutate();
 
     push(`${Routes[RoutesEnum.PoolDetails]}?objectId=${poolId}`);
-
-    logCreatePool(currentAccount.address, tokens[0], tokens[1], tx.digest);
   };
 
   const createPool = () =>
@@ -115,10 +100,7 @@ const PoolSummaryButton: FC = () => {
           'Your pool was create successfully, and you can check it on the Explorer',
         primaryButton: {
           label: 'See on Explorer',
-          onClick: () => {
-            gotoExplorer();
-            handleClose();
-          },
+          onClick: handleClose,
         },
       },
       error: {

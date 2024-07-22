@@ -15,9 +15,7 @@ const SelectCoins: FC = () => {
     rules: { maxLength: 2 },
   });
 
-  const onRemoveSelectToken = (index: number) => {
-    remove(index);
-  };
+  const onRemoveSelectToken = (index: number) => remove(index);
 
   return (
     <Box my="2xs" height="73%">
@@ -26,7 +24,7 @@ const SelectCoins: FC = () => {
           Select pool token
         </Typography>
         <Box display="grid" gap="s" my="s">
-          {fields.slice(0, 5).map(({ id }, index) => (
+          {fields.slice(0, 2).map(({ id }, index) => (
             <SelectToken
               key={id}
               index={index}
@@ -45,11 +43,11 @@ const SelectCoins: FC = () => {
             borderColor="outlineVariant"
             onClick={() =>
               append({
-                type: '',
                 symbol: '',
-                decimals: 0,
                 value: '0',
+                decimals: 0,
                 locked: false,
+                type: '' as `0x${string}`,
               })
             }
             PrefixIcon={

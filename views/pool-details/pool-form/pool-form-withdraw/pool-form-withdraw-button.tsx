@@ -3,62 +3,61 @@ import {
   useCurrentAccount,
   useSignTransactionBlock,
   useSuiClient,
+  useSuiClientContext,
 } from '@mysten/dapp-kit';
 import { FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
-import { EXPLORER_URL } from '@/constants';
-import { useNetwork } from '@/context/network';
-import { useDialog, useWeb3 } from '@/hooks';
+import { EXPLORER_URL, Network } from '@/constants';
+import { useDialog } from '@/hooks/use-dialog';
 import { useModal } from '@/hooks/use-modal';
-import { showTXSuccessToast, throwTXIfNotSuccessful } from '@/utils';
+import { useWeb3 } from '@/hooks/use-web3';
+import {
+  showTXSuccessToast,
+  signAndExecute,
+  throwTXIfNotSuccessful,
+} from '@/utils';
 import { PoolForm } from '@/views/pools/pools.types';
 
 import PoolPreview from '../pool-form-preview';
 import { useWithdraw } from './pool-form-withdraw.hooks';
 
 const PoolFormWithdrawButton: FC = () => {
-  const network = useNetwork();
-  const client = useSuiClient();
-  const withdraw = useWithdraw();
-  const account = useCurrentAccount();
   const { mutate } = useWeb3();
+  const withdraw = useWithdraw();
+  const suiClient = useSuiClient();
+  const { network } = useSuiClientContext();
+  const currentAccount = useCurrentAccount();
   const { dialog, handleClose } = useDialog();
   const signTransactionBlock = useSignTransactionBlock();
   const { setModal, handleClose: closeModal } = useModal();
   const { getValues, control, setValue } = useFormContext<PoolForm>();
 
   const error = useWatch({ control, name: 'error' });
-  const lpCoin = useWatch({ control, name: 'lpCoin' });
-
-  const ableToClick = Boolean(Number(lpCoin.value));
 
   const handleWithdraw = async () => {
     try {
-      if (!account) return;
+      if (!currentAccount) return;
 
-      const txb = await withdraw(getValues(), account);
+      const txb = await withdraw(getValues());
 
-      const { signature, transactionBlockBytes } =
-        await signTransactionBlock.mutateAsync({
-          transactionBlock: txb,
-          account: account,
-        });
-
-      const tx = await client.executeTransactionBlock({
-        signature,
-        options: { showEffects: true },
-        requestType: 'WaitForEffectsCert',
-        transactionBlock: transactionBlockBytes,
+      const tx = await signAndExecute({
+        txb,
+        suiClient,
+        currentAccount,
+        signTransactionBlock,
       });
 
       throwTXIfNotSuccessful(tx);
 
-      await showTXSuccessToast(tx, network);
+      showTXSuccessToast(tx, network as Network);
 
-      setValue('explorerLink', EXPLORER_URL[network](`/txblock/${tx.digest}`));
+      setValue(
+        'explorerLink',
+        `${EXPLORER_URL[network as Network]}/tx/${tx.digest}`
+      );
     } finally {
-      await mutate();
+      mutate();
     }
   };
 
@@ -118,9 +117,9 @@ const PoolFormWithdrawButton: FC = () => {
       mt="xl"
       mx="auto"
       variant="filled"
+      disabled={!!error}
       width="max-content"
       onClick={removeLiquidity}
-      disabled={!!error || !ableToClick}
     >
       Withdraw
     </Button>

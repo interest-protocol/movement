@@ -4,20 +4,26 @@ import {
   TokenField,
   Typography,
 } from '@interest-protocol/ui-kit';
+import { useSuiClientContext } from '@mysten/dapp-kit';
+import { SUI_TYPE_ARG } from '@mysten/sui.js/utils';
 import { ChangeEvent, FC } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { TokenIcon } from '@/components';
-import { useNetwork } from '@/context/network';
-import { useWeb3 } from '@/hooks';
-import { FixedPointMath } from '@/lib';
-import { parseInputEventToNumberString } from '@/utils';
+import { Network } from '@/constants';
+import { useWeb3 } from '@/hooks/use-web3';
+import { FixedPointMath, Rounding } from '@/lib';
+import {
+  isSui,
+  parseInputEventToNumberString,
+  safePoolSymbolFromType,
+} from '@/utils';
 import { PoolForm, PoolOption } from '@/views/pools/pools.types';
 
 import { PoolFieldsProps } from './pool-field.types';
 
 const PoolField: FC<PoolFieldsProps> = ({ index, poolOptionView }) => {
-  const network = useNetwork();
+  const { network } = useSuiClientContext();
   const { coinsMap, loading } = useWeb3();
   const { register, setValue, getValues } = useFormContext<PoolForm>();
 
@@ -48,19 +54,23 @@ const PoolField: FC<PoolFieldsProps> = ({ index, poolOptionView }) => {
       textAlign="right"
       disabled={!token}
       labelPosition="right"
-      tokenName={token?.symbol ?? ''}
-      fieldProps={{ bg: 'lowestContainer' }}
+      tokenName={
+        token?.symbol || (!isDeposit ? safePoolSymbolFromType(token.type) : '')
+      }
+      fieldProps={{ bg: 'container' }}
       handleMax={() => {
         if (isDeposit) handleDepositLock();
 
         setValue(
           `${fieldName}.value`,
-          (+(coinsMap[token.type]
-            ? FixedPointMath.toNumber(
-                coinsMap[token.type].balance,
-                token.decimals
-              )
-            : 0)).toPrecision()
+          (+(
+            coinsMap[token.type]
+              ? FixedPointMath.toNumber(
+                  coinsMap[token.type].balance,
+                  token.decimals
+                )
+              : 0
+          ).toFixed(5)).toPrecision()
         );
       }}
       {...register(`${fieldName}.value`, {
@@ -71,14 +81,12 @@ const PoolField: FC<PoolFieldsProps> = ({ index, poolOptionView }) => {
         },
       })}
       TokenIcon={
-        token && (
-          <TokenIcon
-            withBg
-            network={network}
-            type={token.type}
-            symbol={token.symbol}
-          />
-        )
+        <TokenIcon
+          withBg
+          type={token?.type ?? ''}
+          network={network as Network}
+          symbol={token?.symbol ?? ''}
+        />
       }
       Label={
         <Typography
@@ -92,15 +100,18 @@ const PoolField: FC<PoolFieldsProps> = ({ index, poolOptionView }) => {
         >
           Balance:{' '}
           <Typography size="medium" variant="label" color="primary" as="span">
-            {loading ? (
+            {token &&
+            token.type &&
+            coinsMap[isSui(token.type) ? SUI_TYPE_ARG : token.type] ? (
+              FixedPointMath.toNumber(
+                coinsMap[isSui(token.type) ? SUI_TYPE_ARG : token.type].balance,
+                token.decimals,
+                Rounding.ROUND_DOWN
+              )
+            ) : loading ? (
               <Box mt="-1rem" ml="s">
                 <ProgressIndicator variant="loading" size={16} />
               </Box>
-            ) : token && coinsMap[token.type] ? (
-              FixedPointMath.toNumber(
-                coinsMap[token.type].balance,
-                token.decimals
-              )
             ) : (
               0
             )}
