@@ -24,9 +24,9 @@ const OFFICIAL_POOLS = {
     ETH_USDT_VOL,
     USDC_USDT_STABLE,
   ],
-  [Network.TESTNET]: [],
+  [Network.TESTNET]: [] as string[],
 };
 
-export const CATEGORY_POOLS = {
+export const CATEGORY_POOLS: Record<string, Record<Network, string[]>> = {
   [FormFilterValue.official]: OFFICIAL_POOLS,
 };

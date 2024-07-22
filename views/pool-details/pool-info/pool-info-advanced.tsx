@@ -4,9 +4,7 @@ import BigNumber from 'bignumber.js';
 import { FC } from 'react';
 import { v4 } from 'uuid';
 
-import { WRAPPED_CONVERSION_MAP } from '@/constants/clamm';
 import { useClammSdk } from '@/hooks/use-clamm-sdk';
-import { useNetwork } from '@/hooks/use-network';
 import { FixedPointMath, Rounding } from '@/lib';
 import { formatMoney, getSymbolByType, parseBigNumberish } from '@/utils';
 import { isStablePool } from '@/views/pools/pool-card/pool-card.utils';
@@ -21,7 +19,7 @@ import PoolInfoLoading from './pool-info-loading';
 const AdvanceDetail: FC = () => {
   const clamm = useClammSdk();
   const { pool, metadata, loading, prices } = usePoolDetails();
-  const network = useNetwork();
+
   if (loading) return <PoolInfoLoading />;
 
   if (!pool || !metadata || !prices)
@@ -153,9 +151,7 @@ const AdvanceDetail: FC = () => {
         {pool.coinTypes.map((type) => {
           if (!pool.isStable) {
             const price =
-              (pool as VolatilePool).state.coinStateMap[
-                WRAPPED_CONVERSION_MAP[network][type] || type
-              ]?.price || 0n;
+              (pool as VolatilePool).state.coinStateMap[type]?.price || 0n;
 
             const priceN = FixedPointMath.toNumber(
               BigNumber(price.toString()),

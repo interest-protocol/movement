@@ -1,7 +1,7 @@
 import { Button, Motion } from '@interest-protocol/ui-kit';
 import {
   useCurrentAccount,
-  useSignTransaction,
+  useSignTransactionBlock,
   useSuiClient,
   useSuiClientContext,
 } from '@mysten/dapp-kit';
@@ -33,7 +33,7 @@ const PoolFormDepositButton: FC = () => {
   const currentAccount = useCurrentAccount();
   const { coinsMap, mutate } = useWeb3();
   const { dialog, handleClose } = useDialog();
-  const signTransaction = useSignTransaction();
+  const signTransactionBlock = useSignTransactionBlock();
   const { setModal, handleClose: closeModal } = useModal();
   const { getValues, control, setValue } = useFormContext<PoolForm>();
 
@@ -43,13 +43,13 @@ const PoolFormDepositButton: FC = () => {
     try {
       if (!currentAccount) return;
 
-      const depositTx = await deposit(getValues());
+      const depositTxb = await deposit(getValues());
 
       const tx = await signAndExecute({
-        tx: depositTx,
+        txb: depositTxb,
         suiClient,
         currentAccount,
-        signTransaction,
+        signTransactionBlock,
       });
 
       throwTXIfNotSuccessful(tx);

@@ -1,15 +1,13 @@
+import { MoveObjectArgument } from '@interest-protocol/clamm-sdk';
 import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
-import { Transaction, TransactionResult } from '@mysten/sui.js/transactions';
-
 import {
-  CLAMM_PACKAGE_ADDRESSES,
-  SCALLOP_WRAPPED_COINS_TREASURY_CAPS,
-  WRAPPED_CONVERSION_MAP,
-} from '@/constants/clamm';
+  TransactionBlock,
+  TransactionObjectArgument,
+} from '@mysten/sui.js/transactions';
+
 import { useClammSdk } from '@/hooks/use-clamm-sdk';
-import { useNetwork } from '@/hooks/use-network';
 import { useWeb3 } from '@/hooks/use-web3';
-import { getCoinOfValue, getSafeValue, isScallopPool } from '@/utils';
+import { getCoinOfValue, getSafeValue } from '@/utils';
 import { PoolForm } from '@/views/pools/pools.types';
 
 export const useWithdraw = () => {
@@ -17,10 +15,8 @@ export const useWithdraw = () => {
   const { coinsMap } = useWeb3();
   const suiClient = useSuiClient();
   const currentAccount = useCurrentAccount();
-  const network = useNetwork();
-  const pkgs = CLAMM_PACKAGE_ADDRESSES[network];
 
-  return async (values: PoolForm): Promise<Transaction> => {
+  return async (values: PoolForm): Promise<TransactionBlock> => {
     const { tokenList, pool, lpCoin: coin, tokenSelected } = values;
 
     if (!+coin.value || !tokenList.length) throw new Error('No tokens ');
@@ -31,7 +27,7 @@ export const useWithdraw = () => {
 
     if (!lpCoinWallet) throw new Error('Check the wallet Lp coins');
 
-    const initTx = new Transaction();
+    const initTxb = new TransactionBlock();
 
     const coinValue = getSafeValue({
       coinValue: coin.value,
@@ -43,84 +39,39 @@ export const useWithdraw = () => {
     const lpCoin = await getCoinOfValue({
       suiClient,
       coinValue,
-      tx: initTx,
+      txb: initTxb,
       coinType: coin.type,
       account: currentAccount.address,
     });
 
     let coinsOut = [];
-    let tx: Transaction;
-
-    const isScallop = isScallopPool({
-      poolObjectId: pool.poolObjectId,
-      network,
-    });
+    let txb: TransactionBlock;
 
     if (tokenSelected) {
-      const convertedType = WRAPPED_CONVERSION_MAP[network][tokenSelected];
-
       const response = await clamm.removeLiquidityOneCoin({
-        lpCoin,
-        tx: initTx,
+        tx: initTxb as any,
         pool: pool.poolObjectId,
-        coinOutType: convertedType || tokenSelected,
+        coinOutType: tokenSelected,
+        lpCoin: lpCoin as unknown as MoveObjectArgument,
       });
 
-      tx = response.tx;
+      txb = response.tx as unknown as TransactionBlock;
 
-      if (convertedType) {
-        const cap = SCALLOP_WRAPPED_COINS_TREASURY_CAPS[network][convertedType];
-
-        const unwrappedCoin = initTx.moveCall({
-          target: `${pkgs.SCALLOP_COINS_WRAPPER}::wrapped_scoin::burn`,
-          typeArguments: [tokenSelected, convertedType],
-          arguments: [initTx.object(cap), response.coinOut],
-        });
-
-        coinsOut = [unwrappedCoin];
-      } else {
-        coinsOut = [response.coinOut];
-      }
+      coinsOut = [response.coinOut] as unknown as TransactionObjectArgument[];
     } else {
       const response = await clamm.removeLiquidity({
-        lpCoin,
-        tx: initTx,
+        lpCoin: lpCoin as unknown as MoveObjectArgument,
+        tx: initTxb as any,
         pool: pool.poolObjectId,
       });
-      tx = response.tx;
-      if (isScallop) {
-        coinsOut = [] as TransactionResult[];
 
-        pool.coinTypes.forEach((x, index) => {
-          const wrappedType = WRAPPED_CONVERSION_MAP[network][x];
+      txb = response.tx as unknown as TransactionBlock;
 
-          if (!wrappedType) {
-            coinsOut.push(response.coinsOut[index]);
-            return;
-          }
-
-          const cap = SCALLOP_WRAPPED_COINS_TREASURY_CAPS[network][wrappedType];
-
-          if (!cap) {
-            coinsOut.push(response.coinsOut[index]);
-            return;
-          }
-
-          const unwrappedCoin = initTx.moveCall({
-            target: `${pkgs.SCALLOP_COINS_WRAPPER}::wrapped_scoin::burn`,
-            typeArguments: [x, wrappedType],
-            arguments: [initTx.object(cap), response.coinsOut[index]],
-          });
-
-          coinsOut.push(unwrappedCoin);
-        });
-      } else {
-        coinsOut = response.coinsOut;
-      }
+      coinsOut = response.coinsOut as unknown as TransactionObjectArgument[];
     }
 
-    tx.transferObjects(coinsOut, tx.pure.address(currentAccount.address));
+    txb.transferObjects(coinsOut, txb.pure.address(currentAccount.address));
 
-    return tx;
+    return txb;
   };
 };

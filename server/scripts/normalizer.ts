@@ -5,7 +5,7 @@ import { Network } from '@/constants';
 import { getClammPoolModel } from '../model/clamm-pool';
 
 export const normalizePoolsLpCoin = async () => {
-  const clammModel = getClammPoolModel(Network.MAINNET);
+  const clammModel = getClammPoolModel(Network.DEVNET);
 
   const pools = await clammModel.find({});
 

@@ -206,7 +206,6 @@ const PoolCardListContent: FC<PoolCardListContentProps> = ({
   arePoolsLoading,
   done,
 }) => {
-  const { network } = useSuiClientContext();
   const hasPoolsList = !!(pools && pools.length);
 
   const hasMore = !!(
@@ -215,7 +214,9 @@ const PoolCardListContent: FC<PoolCardListContentProps> = ({
     totalItems > Math.ceil(pools.length / PAGE_SIZE)
   );
 
-  const symbols = getAllSymbols(pools || [], network as Network);
+  const symbols = getAllSymbols(
+    pools?.flatMap(({ coinTypes }) => coinTypes) || []
+  );
 
   const { data: pricesRecord, isLoading: arePricesLoading } =
     useGetMultipleTokenPriceBySymbol(symbols);

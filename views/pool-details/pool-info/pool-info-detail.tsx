@@ -6,9 +6,7 @@ import { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { v4 } from 'uuid';
 
-import { WRAPPED_CONVERSION_MAP } from '@/constants/clamm';
 import { useClammSdk } from '@/hooks/use-clamm-sdk';
-import { useNetwork } from '@/hooks/use-network';
 import { FixedPointMath, Rounding } from '@/lib';
 import { formatDollars, formatMoney, parseBigNumberish } from '@/utils';
 import {
@@ -33,8 +31,6 @@ const PoolInfoDetail: FC = () => {
       ? BigNumber(0)
       : BigNumber(pathOr('0', ['state', 'virtualPrice'], pool))
   );
-
-  const network = useNetwork();
 
   useEffect(() => {
     if (pool && pool.isStable) {
@@ -115,9 +111,7 @@ const PoolInfoDetail: FC = () => {
 
               if (!pool.isStable) {
                 const price =
-                  (pool as VolatilePool).state.coinStateMap[
-                    WRAPPED_CONVERSION_MAP[network][type] || type
-                  ]?.price || 0n;
+                  (pool as VolatilePool).state.coinStateMap[type]?.price || 0n;
                 const priceN = FixedPointMath.toNumber(
                   BigNumber(price.toString()),
                   18,
