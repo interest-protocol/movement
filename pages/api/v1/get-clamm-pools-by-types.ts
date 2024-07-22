@@ -30,7 +30,7 @@ export default async function handler(
     // invariant(CLAMM_ALLOWED_NETWORKS[network], 'Network must be valid');
 
     const data = await getClammPoolsByCoinTypes({
-      network: CLAMM_ALLOWED_NETWORKS[network] ?? Network.MAINNET,
+      network: CLAMM_ALLOWED_NETWORKS[network] ?? Network.DEVNET,
       // Assume this throws if it is not a struct tag
       coinTypes: coinTypes.map((x) => normalizeStructTag(x)),
     });

@@ -24,4 +24,4 @@ const testnetModel =
 export const getClammGraphMetadataModel = (
   network: Network
 ): typeof mainnetModel =>
-  network === Network.MAINNET ? mainnetModel : testnetModel;
+  network === Network.DEVNET ? mainnetModel : testnetModel;

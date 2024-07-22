@@ -27,7 +27,7 @@ export default async function handler(
     invariant(lpCoinTypes.length, 'You  must pass at least one coin type');
 
     const data = await getClammPoolsByLpCoinTypes({
-      network: Network.MAINNET,
+      network: Network.DEVNET,
       // Assume this throws if it is not a struct tag
       coinTypes: lpCoinTypes.map((x) => normalizeStructTag(x)),
     });

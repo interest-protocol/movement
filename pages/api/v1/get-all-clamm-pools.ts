@@ -33,7 +33,7 @@ export default async function handler(
     const data = await getClammPools({
       page,
       limit,
-      network: CLAMM_ALLOWED_NETWORKS[network] ?? Network.MAINNET,
+      network: CLAMM_ALLOWED_NETWORKS[network] ?? Network.DEVNET,
     });
 
     res.status(200).send(data);
