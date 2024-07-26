@@ -1,4 +1,5 @@
 import { NextApiHandler } from 'next';
+import NextCors from 'nextjs-cors';
 import invariant from 'tiny-invariant';
 
 import { Network } from '@/constants';
@@ -13,30 +14,32 @@ interface Body {
 
 const handler: NextApiHandler = async (req, res) => {
   try {
-    if (req.method === 'POST') {
-      await dbConnect();
+    await NextCors(req, res, {
+      methods: ['POST'],
+      optionsSuccessStatus: 200,
+      origin: 'https://movement.interestprotocol.com/',
+    });
 
-      const body = req.body as Body;
+    await dbConnect();
 
-      const network = body.network;
-      const poolId = body.poolId;
+    const body = req.body as Body;
 
-      invariant(network && poolId, 'invalid body');
+    const network = body.network;
+    const poolId = body.poolId;
 
-      const client = movementClient[network];
+    invariant(network && poolId, 'invalid body');
 
-      invariant(client, 'Movement client not found');
+    const client = movementClient[network];
 
-      const result = await savePool({
-        client,
-        network,
-        poolId,
-      });
+    invariant(client, 'Movement client not found');
 
-      res.status(200).json(result);
-    }
+    const result = await savePool({
+      client,
+      network,
+      poolId,
+    });
 
-    res.status(405).send('Method Not Allowed!');
+    res.json(result);
   } catch (e) {
     res.status(500).json({
       message: handleServerError(e),

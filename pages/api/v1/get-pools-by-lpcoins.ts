@@ -1,4 +1,5 @@
 import { NextApiHandler } from 'next';
+import NextCors from 'nextjs-cors';
 import { pathOr } from 'ramda';
 import invariant from 'tiny-invariant';
 
@@ -9,29 +10,31 @@ import { movementClient } from '@/utils';
 
 const handler: NextApiHandler = async (req, res) => {
   try {
-    if (req.method === 'GET') {
-      await dbConnect();
+    await NextCors(req, res, {
+      methods: ['GET'],
+      optionsSuccessStatus: 200,
+      origin: 'https://movement.interestprotocol.com/',
+    });
 
-      const lpCoins = pathOr('', ['query', 'lpCoins'], req).split(',');
-      const network = pathOr(Network.DEVNET, ['query', 'network'], req);
+    await dbConnect();
 
-      invariant(lpCoins.length, 'You  must pass at least one lp coin type');
-      invariant(Object.values(Network).includes(network), 'Invalid network');
+    const lpCoins = pathOr('', ['query', 'lpCoins'], req).split(',');
+    const network = pathOr(Network.DEVNET, ['query', 'network'], req);
 
-      const client = movementClient[network];
+    invariant(lpCoins.length, 'You  must pass at least one lp coin type');
+    invariant(Object.values(Network).includes(network), 'Invalid network');
 
-      invariant(client, 'Movement client not found');
+    const client = movementClient[network];
 
-      const pools = await getPoolsByLpCoins({
-        client,
-        network,
-        lpCoins,
-      });
+    invariant(client, 'Movement client not found');
 
-      res.status(200).json(pools);
-    }
+    const pools = await getPoolsByLpCoins({
+      client,
+      network,
+      lpCoins,
+    });
 
-    res.status(405).send('Method Not Allowed!');
+    res.json(pools);
   } catch (e) {
     res.status(500).json({
       message: handleServerError(e),

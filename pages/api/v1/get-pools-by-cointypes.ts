@@ -1,4 +1,5 @@
 import { NextApiHandler } from 'next';
+import NextCors from 'nextjs-cors';
 import { pathOr } from 'ramda';
 import invariant from 'tiny-invariant';
 
@@ -12,34 +13,36 @@ import { movementClient } from '@/utils';
 
 const handler: NextApiHandler = async (req, res) => {
   try {
-    if (req.method === 'GET') {
-      await dbConnect();
+    await NextCors(req, res, {
+      methods: ['GET'],
+      optionsSuccessStatus: 200,
+      origin: 'https://movement.interestprotocol.com/',
+    });
 
-      const coinInType = pathOr('', ['query', 'coinInType'], req);
-      const coinOutType = pathOr('', ['query', 'coinOutType'], req);
-      const network = pathOr(Network.DEVNET, ['query', 'network'], req);
+    await dbConnect();
 
-      invariant(Object.values(Network).includes(network), 'Invalid network');
+    const coinInType = pathOr('', ['query', 'coinInType'], req);
+    const coinOutType = pathOr('', ['query', 'coinOutType'], req);
+    const network = pathOr(Network.DEVNET, ['query', 'network'], req);
 
-      const client = movementClient[network];
+    invariant(Object.values(Network).includes(network), 'Invalid network');
 
-      invariant(client, 'Movement client not found');
-      invariant(
-        coinInType && coinOutType,
-        'Please provide both a coin in and coin out types'
-      );
+    const client = movementClient[network];
 
-      const pools = await getPoolsByCoinTypes({
-        client,
-        network,
-        coinInType,
-        coinOutType,
-      });
+    invariant(client, 'Movement client not found');
+    invariant(
+      coinInType && coinOutType,
+      'Please provide both a coin in and coin out types'
+    );
 
-      res.status(200).json(pools);
-    }
+    const pools = await getPoolsByCoinTypes({
+      client,
+      network,
+      coinInType,
+      coinOutType,
+    });
 
-    res.status(405).send('Method Not Allowed!');
+    res.json(pools);
   } catch (e) {
     res.status(500).json({
       message: handleServerError(e),
