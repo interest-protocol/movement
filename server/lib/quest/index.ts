@@ -1,3 +1,4 @@
+import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import invariant from 'tiny-invariant';
 
 import dbConnect from '@/server';
@@ -43,6 +44,7 @@ export const addQuest = async (
   const finalQuest = { ...quest, timestamp: todayTimestamp };
 
   const doc = await QuestModel.create(finalQuest);
+
   await doc.save();
 
   if (profileField === 'airdrop') {
@@ -66,8 +68,10 @@ export const addQuest = async (
   return finalQuest;
 };
 
-export const findQuestProfile = async (address: string) => {
+export const findQuestProfile = async (addy: string) => {
   await dbConnect();
+
+  const address = normalizeSuiAddress(addy);
 
   const questProfile = await QuestProfileModel.findOne({ address });
 

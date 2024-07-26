@@ -4,7 +4,6 @@ import {
   useSignTransactionBlock,
   useSuiClient,
 } from '@mysten/dapp-kit';
-import { sleep } from '@polymedia/suits';
 import { useRouter } from 'next/router';
 import { reverse } from 'ramda';
 import { FC } from 'react';
@@ -96,8 +95,6 @@ const PoolSummaryButton: FC = () => {
       tokens[1],
       tx.digest
     );
-
-    await sleep(500);
 
     push(`${Routes[RoutesEnum.PoolDetails]}?objectId=${poolId}`).then(() =>
       fetch('/api/auth/v1/save-pool', {
