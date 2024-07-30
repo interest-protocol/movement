@@ -5,6 +5,7 @@ import { DiscordSVG, GithubSVG, IPXSVG, TelegramSVG, XSVG } from '@/svg';
 
 const Footer: FC = () => (
   <Box
+    mx="3xl"
     as="footer"
     display="flex"
     color="onSurface"

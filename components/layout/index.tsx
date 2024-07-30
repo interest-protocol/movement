@@ -14,12 +14,21 @@ const Layout: FC<PropsWithChildren<LayoutProps>> = ({ title, children }) => (
       <Box
         flex="1"
         as="aside"
+        height="100vh"
         display="flex"
         position="relative"
         flexDirection="column"
+        justifyContent="space-between"
       >
         <Header />
-        <Box width="100%" overflowY="auto">
+        <Box
+          flex="1"
+          width="100%"
+          display="flex"
+          overflowY="auto"
+          flexDirection="column"
+          justifyContent="space-between"
+        >
           <Box
             m="0"
             width="100%"
@@ -29,7 +38,7 @@ const Layout: FC<PropsWithChildren<LayoutProps>> = ({ title, children }) => (
             px={['m', 'l', 'l', 'xl']}
             mt="unset"
           >
-            <Box as="main" flex="1" mb="10xl">
+            <Box as="main" flex="1" mb="2xl">
               <Box>
                 {title && (
                   <Typography
@@ -45,8 +54,8 @@ const Layout: FC<PropsWithChildren<LayoutProps>> = ({ title, children }) => (
                 {children}
               </Box>
             </Box>
-            <Footer />
           </Box>
+          <Footer />
         </Box>
       </Box>
     </Box>
