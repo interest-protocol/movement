@@ -97,12 +97,12 @@ export const FAUCET_COINS: Record<Network, ReadonlyArray<CoinData>> = {
   ],
   [Network.TESTNET]: [
     {
-      decimals: 9,
+      decimals: 8,
       symbol: 'WBTC',
       type: COIN_TYPES[Network.TESTNET].WBTC as `0x${string}`,
     },
     {
-      decimals: 9,
+      decimals: 8,
       symbol: 'WETH',
       type: COIN_TYPES[Network.TESTNET].WETH as `0x${string}`,
     },
