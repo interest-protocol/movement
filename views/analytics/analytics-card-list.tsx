@@ -42,6 +42,12 @@ const AnalyticsCardList: FC = () => {
         loading={totalLoading}
       />
       <AnalyticsCard
+        title="Swaps"
+        quantity={swapCount}
+        loading={swapLoading}
+        Icon={DoubleChevronSVG}
+      />
+      <AnalyticsCard
         title="Unique Users"
         Icon={UserSVG}
         quantity={usersCount}
@@ -58,12 +64,6 @@ const AnalyticsCardList: FC = () => {
         Icon={FaucetSVG}
         quantity={faucetCount}
         loading={faucetLoading}
-      />
-      <AnalyticsCard
-        title="Swaps"
-        quantity={swapCount}
-        loading={swapLoading}
-        Icon={DoubleChevronSVG}
       />
       <AnalyticsCard
         Icon={CirclePlusSVG}

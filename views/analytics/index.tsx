@@ -3,7 +3,7 @@ import { toPairs, values } from 'ramda';
 import { FC } from 'react';
 
 import Layout from '@/components/layout';
-import { GroupSVG, TransactionSVG } from '@/svg';
+import { DoubleChevronSVG, GroupSVG, TransactionSVG } from '@/svg';
 
 import { useWeeklyMetrics } from './analytics.hooks';
 import AnalyticsCard from './analytics-card';
@@ -54,6 +54,23 @@ const Analytics: FC = () => {
           title="Weekly Active Users"
           loading={loadingWeeklyMetrics}
           quantity={values(weeklyMetrics?.weeklyUsers)?.reverse()?.[0] ?? 0}
+        />
+        <AnalyticsChart
+          title="Weekly Swaps"
+          loading={loadingWeeklyMetrics}
+          data={toPairs(weeklyMetrics?.weeklySwaps).map(
+            ([timestamp, value], index) => ({
+              amount: value,
+              x: `Week ${index + 1}`,
+              description: `Week from ${new Date(Number(timestamp)).toLocaleDateString()}`,
+            })
+          )}
+        />
+        <AnalyticsCard
+          title="Weekly Swaps"
+          Icon={DoubleChevronSVG}
+          loading={loadingWeeklyMetrics}
+          quantity={values(weeklyMetrics?.weeklySwaps)?.reverse()?.[0] ?? 0}
         />
         <AnalyticsCardList />
       </Box>
