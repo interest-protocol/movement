@@ -13,6 +13,14 @@ type ProfileField =
   | 'airdrop'
   | 'createToken';
 
+type MetricField =
+  | 'weeklySwaps'
+  | 'weeklyPools'
+  | 'weeklyTokens'
+  | 'weeklyFaucets'
+  | 'weeklyAirdrops'
+  | 'weeklyDeposits';
+
 type LastField =
   | 'lastSwapAt'
   | 'lastFaucetAt'
@@ -30,6 +38,15 @@ const lastFieldMap: Record<ProfileField, LastField> = {
   addLiquidity: 'lastAddLiquidityAt',
 };
 
+const metricsFieldMap: Record<ProfileField, MetricField> = {
+  swap: 'weeklySwaps',
+  faucet: 'weeklyFaucets',
+  airdrop: 'weeklyAirdrops',
+  createPool: 'weeklyPools',
+  createToken: 'weeklyTokens',
+  addLiquidity: 'weeklyDeposits',
+};
+
 export const addQuest = async (
   quest: Omit<Quest, 'timestamp'>,
   profileField: ProfileField,
@@ -42,7 +59,11 @@ export const addQuest = async (
   const todayTimestamp = getExactDayTimestamp();
   const weekTimestamp = getFirstWeekDayTimestamp();
 
-  await updateMetrics(network, !questProfile.weeks?.includes(weekTimestamp));
+  await updateMetrics(
+    network,
+    !questProfile.weeks?.includes(weekTimestamp),
+    quest.kind
+  );
 
   const finalQuest = { ...quest, timestamp: todayTimestamp };
 
@@ -93,17 +114,34 @@ export const findMetrics = async (network: Network) => {
       network,
       weeklyTXs: {},
       weeklyUsers: {},
+      weeklySwaps: {},
+      weeklyPools: {},
+      weeklyTokens: {},
+      weeklyFaucets: {},
+      weeklyAirdrops: {},
+      weeklyDeposits: {},
     })
   );
 };
 
-export const updateMetrics = async (network: Network, newUser: boolean) => {
+export const updateMetrics = async (
+  network: Network,
+  newUser: boolean,
+  kind: ProfileField
+) => {
   await dbConnect();
   const firstWeekDay = getFirstWeekDayTimestamp();
 
   const metric = await findMetrics(network);
 
   metric.weeklyTXs.set(
+    String(firstWeekDay),
+    (metric.weeklyTXs.get(String(firstWeekDay)) ?? 0) + 1
+  );
+
+  if (!metric[metricsFieldMap[kind]]) metric[metricsFieldMap[kind]] = new Map();
+
+  metric[metricsFieldMap[kind]].set(
     String(firstWeekDay),
     (metric.weeklyTXs.get(String(firstWeekDay)) ?? 0) + 1
   );
