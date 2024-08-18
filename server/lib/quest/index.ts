@@ -143,7 +143,7 @@ export const updateMetrics = async (
 
   metric[metricsFieldMap[kind]].set(
     String(firstWeekDay),
-    (metric.weeklyTXs.get(String(firstWeekDay)) ?? 0) + 1
+    (metric[metricsFieldMap[kind]].get(String(firstWeekDay)) ?? 0) + 1
   );
 
   if (newUser)
