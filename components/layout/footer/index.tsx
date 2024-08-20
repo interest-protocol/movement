@@ -1,98 +1,86 @@
 import { Box, Typography } from '@interest-protocol/ui-kit';
+import Link from 'next/link';
 import { FC } from 'react';
+import { v4 } from 'uuid';
 
-import { DiscordSVG, GithubSVG, IPXSVG, TelegramSVG, XSVG } from '@/svg';
+import { IPXSVG } from '@/svg';
+
+import { SOCIAL_LINK } from './ social-link.data';
 
 const Footer: FC = () => (
   <Box
-    mx="3xl"
+    py="xl"
+    gap="s"
+    px="2xl"
+    zIndex={0}
     as="footer"
+    width="100%"
     display="flex"
-    color="onSurface"
-    flexDirection="column"
-    textTransform="uppercase"
+    alignItems="center"
+    justifyContent="space-between"
+    flexDirection={['column', 'column', 'column', 'row']}
   >
-    <Box textAlign="center" my="2xl">
-      <Typography variant="label" size="medium">
-        Follow us
-      </Typography>
-      <Box display="flex" gap="xs" justifyContent="center" mt="s">
-        <a
-          href="https://discord.com/invite/interestprotocol"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <Box
-            p="xs"
-            width="2.5rem"
-            height="2.5rem"
-            border="1px solid"
-            borderRadius="full"
-            borderColor="outlineVariant"
-            nHover={{ borderColor: 'outline' }}
-          >
-            <DiscordSVG maxHeight="100%" maxWidth="100%" width="100%" />
-          </Box>
-        </a>
-        <a
-          href="https://github.com/interest-protocol/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <Box
-            p="xs"
-            width="2.5rem"
-            height="2.5rem"
-            border="1px solid"
-            borderRadius="full"
-            borderColor="outlineVariant"
-            nHover={{ borderColor: 'outline' }}
-          >
-            <GithubSVG maxHeight="100%" maxWidth="100%" width="100%" />
-          </Box>
-        </a>
-        <a
-          href="https://t.me/interestprotocol"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <Box
-            p="xs"
-            width="2.5rem"
-            height="2.5rem"
-            border="1px solid"
-            borderRadius="full"
-            borderColor="outlineVariant"
-            nHover={{ borderColor: 'outline' }}
-          >
-            <TelegramSVG maxHeight="100%" maxWidth="100%" width="100%" />
-          </Box>
-        </a>
-        <a href="https://x.com/IPXMovement" target="_blank" rel="noreferrer">
-          <Box
-            p="xs"
-            width="2.5rem"
-            height="2.5rem"
-            border="1px solid"
-            borderRadius="full"
-            borderColor="outlineVariant"
-            nHover={{ borderColor: 'outline' }}
-          >
-            <XSVG maxHeight="100%" maxWidth="100%" height="100%" />
-          </Box>
-        </a>
+    <Link
+      target="_blank"
+      rel="noreferrer"
+      title="Visit our landing page"
+      href="https://www.interestprotocol.com/"
+    >
+      <Box
+        width="2.5rem"
+        height="2.5rem"
+        color="onSurface"
+        nHover={{
+          color: 'primary',
+        }}
+      >
+        <IPXSVG maxHeight="100%" maxWidth="100%" width="100%" />
       </Box>
+    </Link>
+    <Box textAlign="center">
+      <Typography
+        size="medium"
+        variant="label"
+        color="onSurface"
+        textTransform="capitalize"
+      >
+        &copy; Interest PROTOCOL {new Date().getFullYear()}
+      </Typography>
     </Box>
     <Box
-      py="m"
+      gap="xs"
       display="flex"
-      borderTop="1px solid"
+      alignItems="center"
+      flexDirection="column"
       justifyContent="center"
-      borderColor="outlineVariant"
     >
-      <a href="https://interestprotocol.com" target="_blank" rel="noreferrer">
-        <IPXSVG maxHeight="2.5rem" maxWidth="2.5rem" width="100%" />
-      </a>
+      <Typography color="onSurface" variant="label" size="medium">
+        Follow us
+      </Typography>
+      <Box display="flex" gap="xs">
+        {SOCIAL_LINK.map(({ title, pathname, Icon }) => (
+          <Link
+            key={v4()}
+            href={pathname}
+            target="_blank"
+            rel="noreferrer"
+            title={`Follow us on ${title}`}
+          >
+            <Box
+              p="xs"
+              width="2.5rem"
+              height="2.5rem"
+              color="onSurface"
+              border="1px solid"
+              borderRadius="full"
+              borderColor="outlineVariant"
+              nHover={{ borderColor: 'outline' }}
+            >
+              <Icon maxHeight="100%" maxWidth="100%" width="100%" />
+            </Box>
+          </Link>
+        ))}
+      </Box>
     </Box>
   </Box>
 );
