@@ -124,8 +124,9 @@ const CoinsManager: FC = () => {
       try {
         updateError(false);
         updateLoading(true);
+        updateCoins({} as CoinsMap);
 
-        if (!currentAccount?.address) return updateCoins({} as CoinsMap);
+        if (!currentAccount?.address) return;
 
         await getAllCoins(
           suiClient,
