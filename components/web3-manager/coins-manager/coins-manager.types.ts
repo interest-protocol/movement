@@ -1,6 +1,9 @@
 import { CoinMetadata, CoinStruct, SuiClient } from '@mysten/sui.js/client';
 import BigNumber from 'bignumber.js';
 
+import { Network } from '@/constants';
+import { UseCoinsResponse } from '@/hooks/use-coins/use-coins.types';
+
 export interface CoinObject extends Pick<CoinMetadata, 'symbol' | 'decimals'> {
   digest?: string;
   version?: string;
@@ -18,5 +21,12 @@ export type CoinsMap = Record<string, CoinObject>;
 export type TGetAllCoins = (
   provider: SuiClient,
   account: string,
+  updateCoins: (data: CoinsMap) => void,
+  set: (
+    partial: (
+      state: UseCoinsResponse
+    ) => UseCoinsResponse | Partial<UseCoinsResponse>
+  ) => void,
+  network: Network,
   cursor?: string | null
-) => Promise<ReadonlyArray<CoinStruct>>;
+) => Promise<void>;

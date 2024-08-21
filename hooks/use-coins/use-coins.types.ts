@@ -15,4 +15,9 @@ export interface UseCoinsResponse {
   updateCoins: (data: CoinsMap) => void;
   updateLoading: (data: boolean) => void;
   updateDelay: (delay: number | undefined) => void;
+  set: (
+    partial: (
+      state: UseCoinsResponse
+    ) => UseCoinsResponse | Partial<UseCoinsResponse>
+  ) => void;
 }

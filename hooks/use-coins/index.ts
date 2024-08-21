@@ -1,18 +1,12 @@
-import { values } from 'ramda';
 import { v4 } from 'uuid';
 import { create } from 'zustand';
 
 import { noop } from '@/utils';
 
-import { CoinsMap } from '../../components/web3-manager/coins-manager/coins-manager.types';
 import { UseCoinsResponse } from './use-coins.types';
 
 export const useCoins = create<UseCoinsResponse>((set) => {
-  const updateCoins = (response: CoinsMap) =>
-    set({
-      coinsMap: response ?? {},
-      coins: values((response ?? {}) as CoinsMap),
-    });
+  const updateCoins = set;
 
   const updateLoading = (response: boolean) => set({ loading: response });
 
@@ -30,6 +24,7 @@ export const useCoins = create<UseCoinsResponse>((set) => {
     coinsMap: {},
     mutate: noop,
     loading: false,
+    set,
     refresh,
     updateDelay,
     updateCoins,
