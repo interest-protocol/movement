@@ -41,6 +41,7 @@ const SelectTokenModalBody: FC<SelectTokenModalBodyProps> = ({
   if (faucet)
     return (
       <ModalTokenBody
+        loading={loading}
         handleSelectToken={handleSelectToken}
         tokens={[
           ...FAUCET_COINS[network].filter(
@@ -64,6 +65,7 @@ const SelectTokenModalBody: FC<SelectTokenModalBodyProps> = ({
   if (!isSearchAddress && filterSelected === TokenOrigin.Strict)
     return (
       <ModalTokenBody
+        loading={false}
         handleSelectToken={handleSelectToken}
         tokens={[
           ...COINS[network].filter(
@@ -97,6 +99,7 @@ const SelectTokenModalBody: FC<SelectTokenModalBodyProps> = ({
   )
     return (
       <ModalTokenBody
+        loading={loading}
         handleSelectToken={handleSelectToken}
         tokens={(coins as Array<CoinObject>)
           ?.sort(({ type }) => (favoriteTokenTypes?.includes(type) ? -1 : 1))
