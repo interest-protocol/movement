@@ -39,6 +39,7 @@ export interface SwapForm {
   settings: ISwapSettings;
   lock: boolean;
   error?: string | null;
+  updateSlider: object;
   explorerLink: string;
   loading: boolean;
   maxValue: boolean;
