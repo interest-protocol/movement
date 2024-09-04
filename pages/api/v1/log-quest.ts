@@ -14,6 +14,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       origin: process.env.ORIGIN ?? '*',
     });
 
+    if (process.env.NODE_ENV === 'development') return;
+
     const network = pathOr(
       Network.TESTNET,
       ['query', 'network'],
