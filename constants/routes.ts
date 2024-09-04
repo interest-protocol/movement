@@ -5,6 +5,7 @@
 export enum RoutesEnum {
   Swap = 'swap',
   Pools = 'pools',
+  Merge = 'merge',
   Faucet = 'faucet',
   Airdrop = 'airdrop',
   Analytics = 'analytics',
@@ -19,6 +20,7 @@ export enum RoutesEnum {
  */
 export const Routes: Record<RoutesEnum, string> = {
   [RoutesEnum.Swap]: '/',
+  [RoutesEnum.Merge]: '/merge',
   [RoutesEnum.Pools]: '/pools',
   [RoutesEnum.Faucet]: '/faucet',
   [RoutesEnum.Airdrop]: '/airdrop',

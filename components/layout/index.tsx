@@ -1,6 +1,8 @@
 import { Box, Typography } from '@interest-protocol/ui-kit';
 import { FC, PropsWithChildren } from 'react';
 
+import MergeCoins from '@/views/components/merge-coins';
+
 import ErrorBoundary from '../error-boundary';
 import Footer from './footer';
 import Header from './header';
@@ -55,6 +57,7 @@ const Layout: FC<PropsWithChildren<LayoutProps>> = ({ title, children }) => (
               </Box>
             </Box>
           </Box>
+          <MergeCoins />
           <Footer />
         </Box>
       </Box>

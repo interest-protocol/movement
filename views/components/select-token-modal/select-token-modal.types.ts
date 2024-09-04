@@ -13,7 +13,7 @@ export interface SelectTokenModalProps {
   faucet?: boolean;
   simple?: boolean;
   closeModal: () => void;
-  onSelect: (coin: CoinData) => void;
+  onSelect: (coin: CoinObject) => void;
 }
 
 export interface SelectTokenFilterProps {

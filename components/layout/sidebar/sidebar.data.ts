@@ -5,6 +5,7 @@ import {
   CirclePlusSVG,
   DoubleChevronSVG,
   FaucetSVG,
+  MergeSVG,
   PoolSVG,
 } from '@/svg';
 
@@ -44,6 +45,12 @@ export const SIDEBAR_ITEMS: ReadonlyArray<
     Icon: FaucetSVG,
     name: 'Faucet',
     path: Routes[RoutesEnum.Faucet],
+    disabled: false,
+  },
+  {
+    Icon: MergeSVG,
+    name: 'Merge',
+    path: Routes[RoutesEnum.Merge],
     disabled: false,
   },
   {
