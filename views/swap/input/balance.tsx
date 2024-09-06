@@ -17,7 +17,7 @@ import { InputProps } from './input.types';
 
 const Balance: FC<InputProps> = ({ label }) => {
   const { coinsMap, loading } = useWeb3();
-  const { control, setValue } = useFormContext<SwapForm>();
+  const { control, setValue, getValues } = useFormContext<SwapForm>();
 
   const type = useWatch({ control, name: `${label}.type` });
   const decimals = useWatch({ control, name: `${label}.decimals` });
@@ -59,9 +59,9 @@ const Balance: FC<InputProps> = ({ label }) => {
       return;
     }
 
-    const finalValue = String(balance - (isSui(type) ? 1 : 0));
+    if (getValues('focus')) setValue('focus', false);
 
-    setValue('from.value', finalValue);
+    setValue('from.value', String(balance - (isSui(type) ? 1 : 0)));
   };
 
   return (
