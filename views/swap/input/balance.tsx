@@ -59,7 +59,9 @@ const Balance: FC<InputProps> = ({ label }) => {
       return;
     }
 
-    setValue('from.value', String(balance - (isSui(type) ? 1 : 0)));
+    const finalValue = String(balance - (isSui(type) ? 1 : 0));
+
+    setValue('from.value', finalValue);
   };
 
   return (
