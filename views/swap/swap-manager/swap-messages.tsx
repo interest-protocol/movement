@@ -9,6 +9,7 @@ import { useWeb3 } from '@/hooks';
 import { FixedPointMath } from '@/lib';
 import { isSui, ZERO_BIG_NUMBER } from '@/utils';
 
+import { SwapMessagesEnum } from '../swap.data';
 import { SwapMessagesProps } from './swap-manager.types';
 
 export const SwapMessages: FC<SwapMessagesProps> = ({
@@ -102,7 +103,7 @@ export const SwapMessages: FC<SwapMessagesProps> = ({
         from.decimals
       ) < Number(fromValue)
     ) {
-      setValue('error', 'You should leave at least 0.1 MOVE for gas');
+      setValue('error', SwapMessagesEnum.leastOneMove);
       return;
     }
 

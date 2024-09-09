@@ -15,7 +15,7 @@ const SwapMessages: FC = () => {
 
   if (!error) return null;
 
-  const isCustomErrorBoxMessage = [SwapMessagesEnum.leastOneSui].includes(
+  const isCustomErrorBoxMessage = [SwapMessagesEnum.leastOneMove].includes(
     error
   );
 

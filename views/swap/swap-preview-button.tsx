@@ -9,6 +9,7 @@ import { FixedPointMath } from '@/lib';
 import { ZERO_BIG_NUMBER } from '@/utils';
 import { SwapForm } from '@/views/swap/swap.types';
 
+import { SwapMessagesEnum } from './swap.data';
 import SwapMessages from './swap-messages';
 import SwapPreviewModal from './swap-preview-modal';
 
@@ -39,6 +40,9 @@ const SwapPreviewButton: FC = () => {
         : ZERO_BIG_NUMBER
     );
 
+  const notEnoughMoveToGas =
+    error && SwapMessagesEnum.leastOneMove.includes(error as SwapMessagesEnum);
+
   const isEnabled =
     from &&
     to &&
@@ -48,7 +52,8 @@ const SwapPreviewButton: FC = () => {
     !loading &&
     !notEnoughBalance &&
     !!Number(from.value) &&
-    !!Number(to.value);
+    !!Number(to.value) &&
+    !notEnoughMoveToGas;
 
   const handlePreview = () => {
     setValue('readyToSwap', false);
