@@ -1,3 +1,3 @@
 export enum SwapMessagesEnum {
-  leastOneSui = 'You must have at least 1 SUI on your wallet',
+  leastOneSui = 'You must have at least 1 MOVE on your wallet',
 }
