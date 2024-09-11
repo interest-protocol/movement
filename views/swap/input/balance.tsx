@@ -61,6 +61,8 @@ const Balance: FC<InputProps> = ({ label }) => {
 
     if (getValues('focus')) setValue('focus', false);
 
+    setValue('updateSlider', {});
+
     setValue('from.value', String(balance - (isSui(type) ? 1 : 0)));
   };
 
