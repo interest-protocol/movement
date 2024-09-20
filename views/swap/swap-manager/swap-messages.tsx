@@ -98,7 +98,7 @@ export const SwapMessages: FC<SwapMessagesProps> = ({
     if (
       isSui(from.type) &&
       FixedPointMath.toNumber(
-        coinsMap[from.type]?.balance.minus(BigNumber(100000000)) ??
+        coinsMap[from.type]?.balance.minus(BigNumber(1000000000)) ??
           ZERO_BIG_NUMBER,
         from.decimals
       ) < Number(fromValue)
