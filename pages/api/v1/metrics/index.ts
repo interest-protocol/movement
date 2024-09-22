@@ -7,7 +7,6 @@ import quest from '@/server/model/quest';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const time = Date.now();
     await NextCors(req, res, {
       methods: ['GET'],
       optionsSuccessStatus: 200,
@@ -27,11 +26,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       })
       .lean()
       .exec();
-
-    console.log({
-      query: findQueryString,
-      time: Date.now() - time,
-    });
 
     res.json(data);
   } catch (e) {
