@@ -9,6 +9,7 @@ import { useWeb3 } from '@/hooks';
 import { FixedPointMath } from '@/lib';
 import { isSui, ZERO_BIG_NUMBER } from '@/utils';
 
+import { SwapMessagesEnum } from '../swap.data';
 import { SwapMessagesProps } from './swap-manager.types';
 
 export const SwapMessages: FC<SwapMessagesProps> = ({
@@ -97,12 +98,12 @@ export const SwapMessages: FC<SwapMessagesProps> = ({
     if (
       isSui(from.type) &&
       FixedPointMath.toNumber(
-        coinsMap[from.type]?.balance.minus(BigNumber(100000000)) ??
+        coinsMap[from.type]?.balance.minus(BigNumber(1000000000)) ??
           ZERO_BIG_NUMBER,
         from.decimals
       ) < Number(fromValue)
     ) {
-      setValue('error', 'You should leave at least 0.1 MOVE for gas');
+      setValue('error', SwapMessagesEnum.leastOneMove);
       return;
     }
 
