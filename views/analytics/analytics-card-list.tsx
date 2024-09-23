@@ -33,6 +33,7 @@ const AnalyticsCardList: FC = () => {
     addLiquidityCount,
     addLiquidityLoading,
   } = useMetrics();
+
   return (
     <>
       <AnalyticsCard
@@ -74,7 +75,7 @@ const AnalyticsCardList: FC = () => {
       <AnalyticsCard
         Icon={PoolSVG}
         title="Pools created"
-        quantity={+poolsCount}
+        quantity={poolsCount}
         loading={poolsLoading}
       />
       <AnalyticsCard

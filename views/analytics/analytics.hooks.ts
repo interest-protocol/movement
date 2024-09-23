@@ -2,21 +2,21 @@ import { useSuiClient } from '@mysten/dapp-kit';
 import useSWR from 'swr';
 
 const useQuestMetrics = (query: any) =>
-  useSWR(`/api/v1/metrics?find=${JSON.stringify(query)}`, () =>
+  useSWR<number>(`/api/v1/metrics?find=${JSON.stringify(query)}`, () =>
     fetch(`/api/v1/metrics?find=${JSON.stringify(query)}`).then((response) =>
       response?.json()
     )
   );
 
 const useQuestProfiles = () =>
-  useSWR(`/api/v1/profiles`, () =>
+  useSWR<number>(`/api/v1/profiles`, () =>
     fetch(`/api/v1/profiles`).then((response) => response?.json())
   );
 
 const usePoolsMetrics = () => {
   const suiClient = useSuiClient();
 
-  return useSWR('pools', () =>
+  return useSWR<number>('pools', () =>
     suiClient
       .getObject({
         id: '0xaa3be47d3edde41e3bf4ad6ddb0ab438cdfb988dd29d7aa878c787d0a3f1190a',
@@ -24,8 +24,8 @@ const usePoolsMetrics = () => {
           showContent: true,
         },
       })
-      .then(
-        (response) => (response.data?.content as any)?.fields.pools.fields.size
+      .then((response) =>
+        Number((response.data?.content as any)?.fields.pools.fields.size ?? '0')
       )
   );
 };
