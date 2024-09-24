@@ -2,9 +2,9 @@ import { values } from 'ramda';
 import { v4 } from 'uuid';
 import { create } from 'zustand';
 
+import { CoinsMap } from '@/components/web3-manager/coins-manager/coins-manager.types';
 import { noop } from '@/utils';
 
-import { CoinsMap } from '../../components/web3-manager/coins-manager/coins-manager.types';
 import { UseCoinsResponse } from './use-coins.types';
 
 export const useCoins = create<UseCoinsResponse>((set) => {
@@ -26,10 +26,12 @@ export const useCoins = create<UseCoinsResponse>((set) => {
     id: v4(),
     coins: [],
     error: false,
-    delay: 10000,
+    quantity: 500,
+    delay: 300_000,
     coinsMap: {},
     mutate: noop,
     loading: false,
+    set,
     refresh,
     updateDelay,
     updateCoins,

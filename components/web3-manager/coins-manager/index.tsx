@@ -8,22 +8,9 @@ import useSWR from 'swr';
 import { useNetwork } from '@/context/network';
 import { useCoins } from '@/hooks/use-coins';
 import { CoinMetadataWithType } from '@/interface';
-import { fetchCoinMetadata, isSui, makeSWRKey, ZERO_BIG_NUMBER } from '@/utils';
+import { fetchCoinMetadata, isSui, makeSWRKey } from '@/utils';
 
-import { CoinsMap, TGetAllCoins } from './coins-manager.types';
-
-const getAllCoins: TGetAllCoins = async (provider, account, cursor = null) => {
-  const { data, nextCursor, hasNextPage } = await provider.getAllCoins({
-    owner: account,
-    cursor,
-  });
-
-  if (!hasNextPage) return data;
-
-  const newData = await getAllCoins(provider, account, nextCursor);
-
-  return [...data, ...newData];
-};
+import { CoinsMap } from './coins-manager.types';
 
 const CoinsManager: FC = () => {
   const network = useNetwork();
@@ -37,12 +24,15 @@ const CoinsManager: FC = () => {
       try {
         updateError(false);
         updateLoading(true);
+
         if (!currentAccount?.address) {
           updateCoins({} as CoinsMap);
           return;
         }
 
-        const coinsRaw = await getAllCoins(suiClient, currentAccount.address);
+        const coinsRaw = await suiClient.getAllBalances({
+          owner: currentAccount.address,
+        });
 
         if (!coinsRaw.length) {
           updateCoins({} as CoinsMap);
@@ -78,7 +68,7 @@ const CoinsManager: FC = () => {
         }
 
         const coins = filteredCoinsRaw.reduce(
-          (acc, { coinType, ...coinRaw }) => {
+          (acc, { coinType, totalBalance, coinObjectCount }) => {
             const type = normalizeStructTag(coinType) as `0x${string}`;
             const { symbol, decimals, ...metadata } = dbCoinsMetadata[type];
 
@@ -86,37 +76,24 @@ const CoinsManager: FC = () => {
               return {
                 ...acc,
                 [SUI_TYPE_ARG as `0x${string}`]: {
-                  ...acc[SUI_TYPE_ARG as `0x${string}`],
-                  ...coinRaw,
                   decimals,
                   metadata,
                   symbol: 'MOVE',
+                  coinObjectCount,
+                  balance: BigNumber(totalBalance),
                   type: SUI_TYPE_ARG as `0x${string}`,
-                  balance: BigNumber(coinRaw.balance).plus(
-                    acc[SUI_TYPE_ARG as `0x${string}`]?.balance ??
-                      ZERO_BIG_NUMBER
-                  ),
-                  objects: (acc[SUI_TYPE_ARG as string]?.objects ?? []).concat([
-                    { ...coinRaw, type: SUI_TYPE_ARG as `0x${string}` },
-                  ]),
                 },
               };
 
             return {
               ...acc,
               [type]: {
-                ...acc[type],
-                ...coinRaw,
                 type,
                 symbol,
                 decimals,
                 metadata,
-                balance: BigNumber(coinRaw.balance).plus(
-                  acc[type]?.balance ?? ZERO_BIG_NUMBER
-                ),
-                objects: (acc[type]?.objects ?? []).concat([
-                  { ...coinRaw, type },
-                ]),
+                coinObjectCount,
+                balance: BigNumber(totalBalance),
               },
             };
           },

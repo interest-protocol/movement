@@ -1,4 +1,9 @@
-import { Box, Button, Typography } from '@interest-protocol/ui-kit';
+import {
+  Box,
+  Button,
+  ProgressIndicator,
+  Typography,
+} from '@interest-protocol/ui-kit';
 import { FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
@@ -11,8 +16,8 @@ import { SwapForm } from '../swap.types';
 import { InputProps } from './input.types';
 
 const Balance: FC<InputProps> = ({ label }) => {
-  const { coinsMap } = useWeb3();
-  const { control, setValue } = useFormContext<SwapForm>();
+  const { coinsMap, loading } = useWeb3();
+  const { control, setValue, getValues } = useFormContext<SwapForm>();
 
   const type = useWatch({ control, name: `${label}.type` });
   const decimals = useWatch({ control, name: `${label}.decimals` });
@@ -54,6 +59,10 @@ const Balance: FC<InputProps> = ({ label }) => {
       return;
     }
 
+    if (getValues('focus')) setValue('focus', false);
+
+    setValue('updateSlider', {});
+
     setValue('from.value', String(balance - (isSui(type) ? 1 : 0)));
   };
 
@@ -79,6 +88,7 @@ const Balance: FC<InputProps> = ({ label }) => {
       <Typography size="small" variant="body" fontSize="s">
         {symbol ? `${balance} ${symbol}` : '0'}
       </Typography>
+      {loading && <ProgressIndicator variant="loading" size={12} />}
     </Button>
   );
 };

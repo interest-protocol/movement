@@ -1,5 +1,4 @@
 import { Box } from '@interest-protocol/ui-kit';
-import BigNumber from 'bignumber.js';
 import dynamic from 'next/dynamic';
 import { FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -19,17 +18,21 @@ const SwapFormFieldSlider: FC = () => {
   const { coinsMap } = useWeb3();
   const { control, setValue, getValues } = useFormContext<SwapForm>();
 
+  useWatch({ control, name: 'updateSlider' });
+
   const type = useWatch({ control, name: 'from.type' });
   const swapping = useWatch({ control, name: 'swapping' });
 
   const safeRemoval =
-    type && isSui(type) ? BigNumber(100000000) : ZERO_BIG_NUMBER;
+    type && isSui(type)
+      ? FixedPointMath.toBigNumber(1, getValues('from.decimals'))
+      : ZERO_BIG_NUMBER;
 
   const balance = coinsMap[type]
     ? coinsMap[type].balance.minus(safeRemoval)
     : ZERO_BIG_NUMBER;
 
-  const fromValue = type ? getValues('from.value') : '0';
+  const fromValue = getValues('from.value') ?? ZERO_BIG_NUMBER;
 
   const initial =
     fromValue && balance && Number(fromValue) && !balance.isZero?.()

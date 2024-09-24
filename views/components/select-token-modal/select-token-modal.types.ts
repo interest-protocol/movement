@@ -38,6 +38,7 @@ export interface SelectTokenModalBodyProps
 }
 
 export interface ModalTokenBodyProps {
+  loading: boolean;
   tokens: ReadonlyArray<CoinData>;
   handleSelectToken: (type: string) => void;
 }

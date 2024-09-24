@@ -85,18 +85,20 @@ export const useCreateAmmPool = () => {
       balance: walletCoinY.balance,
     });
 
-    const coinXInList = createObjectsParameter({
+    const coinXInList = await createObjectsParameter({
       txb,
-      coinsMap,
       type: coinX.type,
+      suiClient: client,
       amount: safeValueX.toString(),
+      account: currentAccount.address,
     });
 
-    const coinYInList = createObjectsParameter({
+    const coinYInList = await createObjectsParameter({
       txb,
-      coinsMap,
       type: coinY.type,
+      suiClient: client,
       amount: safeValueY.toString(),
+      account: currentAccount.address,
     });
 
     const coin0 = txb.moveCall({

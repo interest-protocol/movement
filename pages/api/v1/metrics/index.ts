@@ -15,15 +15,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     await dbConnect();
 
-    const findQuery = JSON.parse(pathOr('{}', ['query', 'find'], req));
+    const findQueryString = pathOr('{}', ['query', 'find'], req);
 
-    const data = await quest.countDocuments({
-      timestamp: { $gte: 1722207600000 }, // get data from 29-07-2024
-      ...findQuery,
-    });
+    const findQuery = JSON.parse(findQueryString);
+
+    const data = await quest
+      .find({
+        timestamp: { $gte: 1722207600000 }, // get data from 29-07-2024
+        ...findQuery,
+      })
+      .lean()
+      .exec();
 
     res.json(data);
   } catch (e) {
+    console.log(e);
+
     res.status(500).send(e);
   }
 };

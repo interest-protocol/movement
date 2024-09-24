@@ -47,7 +47,7 @@ export const fetchCoinMetadata: FetchCoinMetadata = async (args) => {
   })
     .then((res) => res.json())
     .then((data) => {
-      data.forEach(
+      data?.forEach?.(
         (metadata: CoinMetadataWithType) =>
           (metadatas[metadata.type] = metadata)
       );

@@ -2,6 +2,7 @@ import { Box, ProgressIndicator } from '@interest-protocol/ui-kit';
 import { FC, useState } from 'react';
 import useSWR from 'swr';
 
+import { useWeb3 } from '@/hooks';
 import { DefaultTokenSVG } from '@/svg';
 import { fetchCoinMetadata } from '@/utils';
 
@@ -28,6 +29,8 @@ const TokenIcon: FC<TokenIconProps> = (props) => {
     ...props,
   } as TypeBasedIcon;
 
+  const { coinsMap } = useWeb3();
+
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
@@ -41,7 +44,9 @@ const TokenIcon: FC<TokenIconProps> = (props) => {
     async () => {
       if (TokenIcon || !isTypeBased(props)) return null;
 
-      const data = await fetchCoinMetadata({ type, network });
+      const data =
+        coinsMap[type]?.metadata ??
+        (await fetchCoinMetadata({ type, network }));
 
       return data.iconUrl;
     }

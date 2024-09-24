@@ -2,7 +2,9 @@ import { CoinObject } from '@/components/web3-manager/coins-manager/coins-manage
 import { CoinMetadataWithType } from '@/interface';
 import { getSymbolByType, ZERO_BIG_NUMBER } from '@/utils';
 
-export const metadataToCoin = (coinMetadata: CoinMetadataWithType) => {
+export const metadataToCoin = (
+  coinMetadata: CoinMetadataWithType
+): CoinObject => {
   const { type, symbol, decimals, ...metadata } = coinMetadata;
 
   return {
@@ -10,9 +12,8 @@ export const metadataToCoin = (coinMetadata: CoinMetadataWithType) => {
     symbol,
     decimals,
     metadata,
-    objects: [],
+    coinObjectCount: 0,
     balance: ZERO_BIG_NUMBER,
-    coinObjectId: metadata.id!,
   };
 };
 
@@ -23,9 +24,8 @@ export const mapMetadataToCoin = (
   if (!coinType || !coinsMetadata[coinType])
     return {
       decimals: 0,
-      objects: [],
-      coinObjectId: '',
       type: coinType,
+      coinObjectCount: 0,
       balance: ZERO_BIG_NUMBER,
       symbol: getSymbolByType(coinType),
       metadata: {
