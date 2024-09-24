@@ -19,13 +19,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const findQuery = JSON.parse(findQueryString);
 
-    const data = await quest
-      .find({
-        timestamp: { $gte: 1722207600000 }, // get data from 29-07-2024
-        ...findQuery,
-      })
-      .lean()
-      .exec();
+    const data = await quest.find(findQuery).lean().countDocuments();
 
     res.json(data);
   } catch (e) {
