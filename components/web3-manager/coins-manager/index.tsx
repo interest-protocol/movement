@@ -27,21 +27,17 @@ const CoinsManager: FC = () => {
         updateError(false);
         updateLoading(true);
 
-        if (!currentAccount?.address) {
-          updateCoins({} as CoinsMap);
-          return;
-        }
+        if (!currentAccount?.address) return;
+
+        updateCoins({} as CoinsMap);
 
         const coinsRawAll = await suiClient.getAllBalances({
           owner: currentAccount.address,
         });
 
-        for (const coinsRaw of chunk(coinsRawAll, 250)) {
-          if (!coinsRaw.length) {
-            updateCoins({} as CoinsMap);
-            return;
-          }
+        if (!coinsRawAll.length) return;
 
+        for (const coinsRaw of chunk(coinsRawAll, 250)) {
           const coinsType = [
             ...new Set(coinsRaw.map(({ coinType }) => coinType)),
           ];
