@@ -1,4 +1,4 @@
-import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import BigNumber from 'bignumber.js';
 import { useFormContext } from 'react-hook-form';
@@ -15,12 +15,14 @@ import { getAmountMinusSlippage } from './swap.utils';
 export const useSwap = () => {
   const network = useNetwork();
   const { coinsMap } = useWeb3();
+  const suiClient = useSuiClient();
   const currentAccount = useCurrentAccount();
   const formSwap = useFormContext<SwapForm>();
 
   return () =>
     swap({
       currentAccount,
+      suiClient,
       coinsMap,
       formSwap,
       network,
@@ -30,11 +32,13 @@ export const useSwap = () => {
 export const useZeroSwap = () => {
   const network = useNetwork();
   const { coinsMap } = useWeb3();
+  const suiClient = useSuiClient();
   const currentAccount = useCurrentAccount();
   const formSwap = useFormContext<SwapForm>();
 
   return () =>
     swap({
+      suiClient,
       currentAccount,
       coinsMap,
       formSwap,
@@ -44,10 +48,11 @@ export const useZeroSwap = () => {
 };
 
 const swap = async ({
-  currentAccount,
   coinsMap,
   formSwap,
   network,
+  suiClient,
+  currentAccount,
   isZeroSwap = false,
 }: SwapArgs) => {
   const { from, to, routeWithAmount, poolsMap, settings } =
@@ -96,11 +101,12 @@ const swap = async ({
 
   const txb = new TransactionBlock();
 
-  const coinInList = createObjectsParameter({
-    coinsMap,
+  const coinInList = await createObjectsParameter({
     txb,
+    suiClient,
     type: from.type,
     amount: amountIn.toString(),
+    account: currentAccount.address,
   });
 
   const coinIn = txb.moveCall({

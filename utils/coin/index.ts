@@ -25,6 +25,7 @@ import {
   CreateVectorParameterArgs,
   GetCoinsArgs,
   GetSafeValueArgs,
+  TGetAllCoins,
 } from './coin.types';
 
 export const isSymbol = (text: string): boolean =>
@@ -98,26 +99,31 @@ export const getCoinsFromLpCoinType = (poolType: string) => {
   };
 };
 
-export const createObjectsParameter = ({
+export const createObjectsParameter = async ({
   txb,
   type,
-  coinsMap,
   amount,
+  account,
+  suiClient,
 }: CreateVectorParameterArgs) => {
-  if (type === SUI_TYPE_ARG) {
+  if (isSui(type)) {
     const [coin] = txb.splitCoins(txb.gas, [txb.pure(amount.toString())]);
     return [coin];
   }
 
-  return coinsMap[type]
-    ? coinsMap[type].objects.map((x) =>
-        txb.objectRef({
-          objectId: normalizeSuiObjectId(x.coinObjectId),
-          digest: x.digest,
-          version: x.version,
-        })
-      )
-    : [];
+  const coinObjects = await getAllCoins(
+    suiClient,
+    account,
+    type as `0x${string}`
+  );
+
+  return coinObjects?.map((x) =>
+    txb.objectRef({
+      objectId: normalizeSuiObjectId(x.coinObjectId),
+      digest: x.digest,
+      version: x.version,
+    })
+  );
 };
 
 export const isLpCoinType = (x: string) => {
@@ -216,8 +222,26 @@ export const getSafeValue = ({
 
 export const coinDataToCoinObject = (coinData: CoinData): CoinObject => ({
   ...coinData,
+  coinObjectCount: 0,
   balance: ZERO_BIG_NUMBER,
-  coinObjectId: '',
   metadata: { name: formatAddress(coinData.type), description: '' },
-  objects: [],
 });
+
+export const getAllCoins: TGetAllCoins = async (
+  provider,
+  account,
+  type,
+  cursor = null
+) => {
+  const { data, nextCursor, hasNextPage } = await provider.getCoins({
+    coinType: type,
+    owner: account,
+    cursor,
+  });
+
+  if (!hasNextPage) return data;
+
+  const newData = await getAllCoins(provider, account, type, nextCursor);
+
+  return [...data, ...newData];
+};

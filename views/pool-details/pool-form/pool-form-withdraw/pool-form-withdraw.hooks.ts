@@ -1,3 +1,4 @@
+import { useSuiClient } from '@mysten/dapp-kit';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { WalletAccount } from '@wallet-standard/base';
 
@@ -17,6 +18,7 @@ import { getAmmXYAmount } from '../pool-form.utils';
 export const useWithdraw = () => {
   const network = useNetwork();
   const { coinsMap } = useWeb3();
+  const suiClient = useSuiClient();
 
   return async (values: PoolForm, account: WalletAccount | null) => {
     const { tokenList, pool, lpCoin, settings } = values;
@@ -41,10 +43,11 @@ export const useWithdraw = () => {
       balance: lpCoinWallet.balance,
     });
 
-    const lpCoinInList = createObjectsParameter({
-      coinsMap,
+    const lpCoinInList = await createObjectsParameter({
       txb: txb,
+      suiClient,
       type: lpCoin.type,
+      account: account.address,
       amount: amount.toString(),
     });
 

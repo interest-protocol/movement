@@ -1,3 +1,4 @@
+import { SuiClient } from '@mysten/sui.js/client';
 import { WalletAccount } from '@wallet-standard/base';
 import { FC } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -63,6 +64,7 @@ export interface SwapPreviewModalProps {
 }
 
 export interface SwapArgs {
+  suiClient: SuiClient;
   currentAccount: WalletAccount | null;
   coinsMap: CoinsMap;
   formSwap: UseFormReturn<SwapForm>;

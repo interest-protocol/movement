@@ -26,6 +26,7 @@ export const useCoins = create<UseCoinsResponse>((set) => {
     id: v4(),
     coins: [],
     error: false,
+    quantity: 500,
     delay: 300_000,
     coinsMap: {},
     mutate: noop,
