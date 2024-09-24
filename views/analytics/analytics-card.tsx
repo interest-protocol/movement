@@ -24,7 +24,13 @@ const AnalyticsCard: FC<AnalyticsCardProps> = memo(
         <Icon maxHeight="2rem" maxWidth="2rem" width="100%" />
       </Box>
       <Typography variant="headline" size="large">
-        {loading ? <Skeleton width="10rem" /> : formatMoney(quantity, 0)}
+        {loading ? (
+          <Skeleton width="10rem" />
+        ) : quantity ? (
+          formatMoney(quantity, 0)
+        ) : (
+          'N/A'
+        )}
       </Typography>
     </Box>
   )
