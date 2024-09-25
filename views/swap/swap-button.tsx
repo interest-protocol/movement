@@ -14,6 +14,7 @@ import {
   showTXSuccessToast,
   signAndExecute,
   throwTXIfNotSuccessful,
+  ZERO_BIG_NUMBER,
 } from '@/utils';
 import { SwapForm } from '@/views/swap/swap.types';
 
@@ -32,8 +33,8 @@ const SwapButton = () => {
   const signTransactionBlock = useSignTransactionBlock();
 
   const resetInput = () => {
-    formSwap.setValue('to.value', '0');
-    formSwap.setValue('from.value', '0');
+    formSwap.setValue('to.value', ZERO_BIG_NUMBER);
+    formSwap.setValue('from.value', ZERO_BIG_NUMBER);
   };
 
   const gotoExplorer = () => {

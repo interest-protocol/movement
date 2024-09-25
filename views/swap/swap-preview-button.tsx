@@ -5,7 +5,6 @@ import { FormProvider, useFormContext, useWatch } from 'react-hook-form';
 
 import { useWeb3 } from '@/hooks';
 import { useModal } from '@/hooks/use-modal';
-import { FixedPointMath } from '@/lib';
 import { ZERO_BIG_NUMBER } from '@/utils';
 import { SwapForm } from '@/views/swap/swap.types';
 
@@ -29,12 +28,9 @@ const SwapPreviewButton: FC = () => {
   const from = useWatch({ control: control, name: 'from' });
   const to = useWatch({ control: control, name: 'to' });
 
-  const notEnoughBalance = FixedPointMath.toBigNumber(
-    from?.value ?? '0',
-    from?.decimals ?? 0
-  )
-    .decimalPlaces(0, BigNumber.ROUND_DOWN)
-    .gt(
+  const notEnoughBalance =
+    from?.value ??
+    ZERO_BIG_NUMBER.decimalPlaces(0, BigNumber.ROUND_DOWN).gt(
       from && coinsMap[from.type]
         ? BigNumber(coinsMap[from.type].balance)
         : ZERO_BIG_NUMBER

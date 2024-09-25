@@ -13,7 +13,7 @@ import {
   PRICE_BLACKLIST,
 } from '@/constants';
 import { useWeb3 } from '@/hooks/use-web3';
-import { getCoin, isSui, updateURL } from '@/utils';
+import { getCoin, isSui, updateURL, ZERO_BIG_NUMBER } from '@/utils';
 
 import { Aggregator, ISwapSettings, SwapForm, SwapToken } from './swap.types';
 
@@ -50,8 +50,8 @@ const SwapInitManager: FC = () => {
         type,
         symbol,
         decimals,
-        value: '',
         usdPrice: null,
+        value: ZERO_BIG_NUMBER,
       };
     }
     if (typeof type === 'string' && type.startsWith('0x')) {
@@ -59,8 +59,8 @@ const SwapInitManager: FC = () => {
 
       return {
         ...coin,
-        value: '',
         usdPrice: null,
+        value: ZERO_BIG_NUMBER,
       };
     }
     return null;

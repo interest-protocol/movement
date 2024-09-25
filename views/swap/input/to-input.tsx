@@ -2,6 +2,8 @@ import { Box, TextField } from '@interest-protocol/ui-kit';
 import { FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
+import { FixedPointMath } from '@/lib';
+
 import { SwapForm } from '../swap.types';
 import Balance from './balance';
 import AmountInDollar from './dollar-value';
@@ -32,7 +34,7 @@ const ToInput: FC = () => {
           >
             <TextField
               disabled
-              value={value}
+              value={FixedPointMath.toNumber(value)}
               lineHeight="l"
               placeholder="0"
               color="onSurface"
