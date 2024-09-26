@@ -61,8 +61,6 @@ const Dropdown: FC<DropdownProps> = ({ label, type, filterData, disabled }) => {
 
       const newQuery = { ...router.query, [type]: option.value };
 
-      console.log('newQuery', newQuery);
-
       if (!option.value) {
         delete newQuery[type];
       }
