@@ -10,7 +10,7 @@ const AnalyticsCard: FC<AnalyticsCardProps> = memo(
   ({ Icon, title, loading, quantity }) => (
     <Box
       p="xl"
-      gap="m"
+      gap="s"
       display="flex"
       borderRadius="xs"
       color="onSurface"
@@ -27,7 +27,20 @@ const AnalyticsCard: FC<AnalyticsCardProps> = memo(
         {loading ? (
           <Skeleton width="10rem" />
         ) : quantity ? (
-          formatMoney(quantity, 0)
+          <>
+            <Typography as="span" size="large" variant="headline">
+              {formatMoney(quantity, 0)}
+            </Typography>
+            <Typography
+              as="span"
+              size="large"
+              color="outline"
+              variant="label"
+              display="block"
+            >
+              ({quantity})
+            </Typography>
+          </>
         ) : (
           'N/A'
         )}
