@@ -1,4 +1,5 @@
 import { Box, Button, Motion, RadioButton } from '@interest-protocol/ui-kit';
+import { useRouter } from 'next/router';
 import { not } from 'ramda';
 import { FC, useEffect, useId, useState } from 'react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
@@ -28,6 +29,8 @@ const Dropdown: FC<DropdownProps> = ({ label, type, filterData, disabled }) => {
 
   const [isSelected, setIsSelected] = useState(false);
 
+  const router = useRouter();
+
   const closeDropdown = (event: any) => {
     if (
       event?.path?.some((node: any) => node?.id == boxId) ||
@@ -55,6 +58,16 @@ const Dropdown: FC<DropdownProps> = ({ label, type, filterData, disabled }) => {
       setSelectedOption(option);
       setIsSelected(!isSelected);
       replace(tmpFilters);
+
+      const newQuery = { ...router.query, [type]: option.value };
+
+      if (!option.value) {
+        delete newQuery[type];
+      }
+
+      router.push({ pathname: router.pathname, query: newQuery }, undefined, {
+        shallow: true,
+      });
     }
     setOpen(not);
   };
