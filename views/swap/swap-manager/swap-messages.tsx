@@ -86,22 +86,20 @@ export const SwapMessages: FC<SwapMessagesProps> = ({
     }
 
     if (
-      FixedPointMath.toNumber(
-        coinsMap[from.type]?.balance ?? ZERO_BIG_NUMBER,
-        from.decimals
-      ) < Number(fromValue)
+      isSui(from.type) &&
+      (coinsMap[from.type]?.balance ?? ZERO_BIG_NUMBER).lt(
+        FixedPointMath.toBigNumber(fromValue, coinsMap[from.type].decimals)
+      )
     ) {
       setValue('error', "Sell value can't be greater than balance");
       return;
     }
 
     if (
-      isSui(from.type) &&
-      FixedPointMath.toNumber(
+      (
         coinsMap[from.type]?.balance.minus(BigNumber(1000000000)) ??
-          ZERO_BIG_NUMBER,
-        from.decimals
-      ) < Number(fromValue)
+        ZERO_BIG_NUMBER
+      ).lt(FixedPointMath.toBigNumber(fromValue, coinsMap[from.type].decimals))
     ) {
       setValue('error', SwapMessagesEnum.leastOneMove);
       return;

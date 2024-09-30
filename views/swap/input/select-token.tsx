@@ -9,7 +9,7 @@ import { Network } from '@/constants';
 import { useModal } from '@/hooks/use-modal';
 import { CoinData } from '@/interface';
 import { ChevronDownSVG } from '@/svg';
-import { updateURL } from '@/utils';
+import { updateURL, ZERO_BIG_NUMBER } from '@/utils';
 import SelectTokenModal from '@/views/components/select-token-modal';
 
 import { SwapForm } from '../swap.types';
@@ -63,7 +63,7 @@ const SelectToken: FC<InputProps> = ({ label }) => {
         symbol: currentToken.symbol,
         decimals: currentToken.decimals,
         usdPrice: currentToken.usdPrice,
-        value: '',
+        value: ZERO_BIG_NUMBER,
       });
     }
 
@@ -71,7 +71,7 @@ const SelectToken: FC<InputProps> = ({ label }) => {
       type,
       symbol,
       decimals,
-      value: '',
+      value: ZERO_BIG_NUMBER,
       usdPrice: null,
     });
 
@@ -82,7 +82,7 @@ const SelectToken: FC<InputProps> = ({ label }) => {
       )
       .catch(() => null);
 
-    if (label === 'from') setValue('to.value', '');
+    if (label === 'from') setValue('to.value', ZERO_BIG_NUMBER);
 
     changeURL(type, type === oppositeType ? currentToken.type : undefined);
     setValue('lock', false);
