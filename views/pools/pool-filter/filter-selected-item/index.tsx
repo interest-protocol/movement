@@ -1,5 +1,4 @@
 import { Box, Button } from '@interest-protocol/ui-kit';
-import { useRouter } from 'next/router';
 import { FC } from 'react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { v4 } from 'uuid';
@@ -18,19 +17,9 @@ const FilterSelectedItem: FC = () => {
     name: 'filterList',
   });
 
-  const router = useRouter();
-
   const removeFilter = (filter: FilterItemProps) => {
     const tmpFilters = fields?.filter((field) => filter.value != field.value);
     replace(tmpFilters);
-
-    const newQuery = { ...router.query };
-
-    delete newQuery[filter.type];
-
-    router.push({ pathname: router.pathname, query: newQuery }, undefined, {
-      shallow: true,
-    });
   };
 
   const resetPoolPairFilter = () => {
@@ -40,7 +29,6 @@ const FilterSelectedItem: FC = () => {
 
   const erase = () => {
     replace([]);
-    router.push(router.pathname, undefined, { shallow: true });
   };
 
   return (
