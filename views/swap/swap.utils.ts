@@ -57,12 +57,12 @@ export const logSwap = (
       data: {
         coinIn: {
           type: from.type,
-          amount: from.value,
+          amount: from.value.toString(),
           symbol: from.symbol,
         },
         coinOut: {
           type: to.type,
-          amount: to.value,
+          amount: to.value.toString(),
           symbol: to.symbol,
         },
       },

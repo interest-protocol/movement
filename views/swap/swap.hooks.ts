@@ -6,7 +6,6 @@ import { useFormContext } from 'react-hook-form';
 import { PACKAGES } from '@/constants';
 import { useNetwork } from '@/context/network';
 import { useWeb3 } from '@/hooks';
-import { FixedPointMath } from '@/lib';
 import { createObjectsParameter, getSafeValue, ZERO_BIG_NUMBER } from '@/utils';
 
 import { SwapArgs, SwapForm } from './swap.types';
@@ -75,7 +74,7 @@ const swap = async ({
   const walletCoin = coinsMap[from.type];
 
   const safeAmount = getSafeValue({
-    coinValue: from.value,
+    coinValue: String(from.value),
     coinType: from.type,
     decimals: from.decimals,
     balance: walletCoin.balance,
@@ -85,17 +84,11 @@ const swap = async ({
     ? coinsMap[from.type]
       ? BigNumber(coinsMap[from.type].balance)
       : ZERO_BIG_NUMBER
-    : FixedPointMath.toBigNumber(fromValue, from.decimals).decimalPlaces(
-        0,
-        BigNumber.ROUND_DOWN
-      );
+    : (fromValue as BigNumber).decimalPlaces(0, BigNumber.ROUND_DOWN);
 
   const amountIn = safeAmount.gt(amount) ? safeAmount : amount;
 
-  const amountOut = FixedPointMath.toBigNumber(
-    to.value,
-    to.decimals
-  ).decimalPlaces(0, BigNumber.ROUND_DOWN);
+  const amountOut = to.value.decimalPlaces(0, BigNumber.ROUND_DOWN);
 
   const minAmountOut = getAmountMinusSlippage(amountOut, settings.slippage);
 

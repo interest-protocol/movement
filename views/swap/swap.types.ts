@@ -1,5 +1,6 @@
 import { SuiClient } from '@mysten/sui.js/client';
 import { WalletAccount } from '@wallet-standard/base';
+import BigNumber from 'bignumber.js';
 import { FC } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 
@@ -17,7 +18,7 @@ export interface ISwapSettings {
 }
 
 export interface SwapToken extends CoinData {
-  value: string;
+  value: BigNumber;
   usdPrice: number | null;
   isFetchingSwap?: boolean;
 }

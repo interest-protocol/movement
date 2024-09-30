@@ -99,7 +99,7 @@ const SwapPreviewModal: FC<SwapPreviewModalProps> = ({ onClose }) => {
               </Box>
               <Box textAlign="right">
                 <Typography variant="body" size="medium" color="onSurface">
-                  {tokenFrom.value || 0}
+                  {tokenFrom.value?.toNumber() || 0}
                 </Typography>
                 <Typography variant="body" size="small" color="outlineVariant">
                   {tokenFrom.usdPrice
@@ -162,7 +162,7 @@ const SwapPreviewModal: FC<SwapPreviewModalProps> = ({ onClose }) => {
                 </Box>
                 <Box textAlign="right">
                   <Typography variant="body" size="medium" color="onSurface">
-                    {tokenTo.value || 0}
+                    {tokenTo.value?.toNumber() || 0}
                   </Typography>
                   <Typography
                     variant="body"

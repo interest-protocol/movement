@@ -55,7 +55,7 @@ const Balance: FC<InputProps> = ({ label }) => {
     if (label === 'to') return;
 
     if (isSui(type) && balance < 1) {
-      setValue('from.value', '0');
+      setValue('from.value', ZERO_BIG_NUMBER);
       return;
     }
 
@@ -63,7 +63,10 @@ const Balance: FC<InputProps> = ({ label }) => {
 
     setValue('updateSlider', {});
 
-    setValue('from.value', String(balance - (isSui(type) ? 1 : 0)));
+    setValue(
+      'from.value',
+      FixedPointMath.toBigNumber(balance - (isSui(type) ? 1 : 0))
+    );
   };
 
   return (
