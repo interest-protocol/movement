@@ -5,6 +5,7 @@ import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { v4 } from 'uuid';
 
 import { TimesSVG } from '@/svg';
+import { updateURL } from '@/utils';
 
 import { FilterItemProps, PoolForm } from '../../pools.types';
 
@@ -18,19 +19,23 @@ const FilterSelectedItem: FC = () => {
     name: 'filterList',
   });
 
-  const router = useRouter();
+  const { pathname } = useRouter();
+
+  const searchParams = new URLSearchParams();
 
   const removeFilter = (filter: FilterItemProps) => {
     const tmpFilters = fields?.filter((field) => filter.value != field.value);
     replace(tmpFilters);
 
-    const newQuery = { ...router.query };
+    searchParams.delete(filter.type);
 
-    delete newQuery[filter.type];
-
-    router.push({ pathname: router.pathname, query: newQuery }, undefined, {
-      shallow: true,
+    tmpFilters.forEach((filter) => {
+      if (filter.type && filter.value) {
+        searchParams.append(filter.type, filter.value);
+      }
     });
+
+    updateURL(`${pathname}?${searchParams.toString()}`);
   };
 
   const resetPoolPairFilter = () => {
@@ -40,7 +45,7 @@ const FilterSelectedItem: FC = () => {
 
   const erase = () => {
     replace([]);
-    router.push(router.pathname, undefined, { shallow: true });
+    updateURL(`${pathname}`);
   };
 
   return (
