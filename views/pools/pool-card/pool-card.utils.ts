@@ -1,5 +1,6 @@
 import { isEmpty } from 'ramda';
 
+import { PRICE_TYPE } from '@/constants';
 import { AmmPool, CoinMetadataWithType } from '@/interface';
 import { FixedPointMath } from '@/lib';
 
@@ -11,19 +12,11 @@ export const getLiquidity = (
   if (isEmpty(prices)) return 0;
 
   const priceX = metadata[pool.coinTypes.coinX]
-    ? prices[
-        metadata[pool.coinTypes.coinX]?.symbol.toLowerCase() === 'sui'
-          ? 'move'
-          : metadata[pool.coinTypes.coinX]?.symbol.toLowerCase()
-      ]
+    ? prices[PRICE_TYPE[metadata[pool.coinTypes.coinX]?.symbol]]
     : null;
 
   const priceY = metadata[pool.coinTypes.coinY]
-    ? prices[
-        metadata[pool.coinTypes.coinY]?.symbol.toLowerCase() === ' sui'
-          ? 'move'
-          : metadata[pool.coinTypes.coinY]?.symbol.toLowerCase()
-      ]
+    ? prices[PRICE_TYPE[metadata[pool.coinTypes.coinY]?.symbol]]
     : null;
 
   if (!priceX && !!priceY)

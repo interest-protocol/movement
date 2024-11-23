@@ -4,9 +4,10 @@ import { useFormContext, useWatch } from 'react-hook-form';
 
 import { TokenIcon } from '@/components';
 import { CoinObject } from '@/components/web3-manager/coins-manager/coins-manager.types';
+import { PRICE_TYPE } from '@/constants';
 import { useNetwork } from '@/context/network';
+import useGetMultipleTokenPriceByType from '@/hooks/use-get-multiple-token-price-by-type';
 import { useModal } from '@/hooks/use-modal';
-import useTokenPriceBySymbol from '@/hooks/use-token-price';
 import { CoinData } from '@/interface';
 import { ChevronRightSVG } from '@/svg';
 
@@ -20,14 +21,21 @@ const AirdropSelectToken: FC = () => {
   const { setModal, handleClose } = useModal();
   const { control, setValue } = useFormContext<IAirdropForm>();
   const token = useWatch({ control, name: 'token' });
+
   const {
     isLoading,
     error,
     data: usdPrice,
-  } = useTokenPriceBySymbol(token?.symbol);
+  } = useGetMultipleTokenPriceByType(
+    PRICE_TYPE[token?.symbol] ? [PRICE_TYPE[token?.symbol]] : []
+  );
 
   useEffect(() => {
-    if (!isLoading && !error) setValue('tokenUSDPrice', usdPrice);
+    if (!isLoading && !error)
+      setValue(
+        'tokenUSDPrice',
+        PRICE_TYPE[token?.symbol] ? usdPrice?.[PRICE_TYPE[token?.symbol]] : 0
+      );
   }, [usdPrice, isLoading, error]);
 
   const onSelect = (coin: CoinData) => {

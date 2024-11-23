@@ -3,11 +3,12 @@ import { FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import TokenIcon from '@/components/token-icon';
+import { PRICE_TYPE } from '@/constants';
 import { useNetwork } from '@/context/network';
+import { getPrices } from '@/hooks/use-get-multiple-token-price-by-type/use-get-multiple-token-price-by-type.utils';
 import { useModal } from '@/hooks/use-modal';
 import { CoinData } from '@/interface';
 import { ChevronRightSVG } from '@/svg';
-import { isSui } from '@/utils';
 import SelectTokenModal from '@/views/components/select-token-modal';
 
 import { CreatePoolForm } from '../../pool-create.types';
@@ -37,15 +38,12 @@ const SelectToken: FC<InputProps> = ({ index, isMobile }) => {
       usdPrice: currentToken?.usdPrice,
     });
 
-    fetch(`/api/v1/coin-price?symbol=${isSui(type) ? 'SUI' : symbol}`)
-      .then((response) => response.json())
-      .then((data) =>
-        setValue(
-          `tokens.${index}.usdPrice`,
-          data[isSui(type) ? 'SUI' : symbol][0].quote.USD.price
+    if (PRICE_TYPE[symbol])
+      getPrices([PRICE_TYPE[symbol]])
+        .then((data) =>
+          setValue(`tokens.${index}.usdPrice`, data[PRICE_TYPE[symbol]])
         )
-      )
-      .catch(() => null);
+        .catch(() => null);
   };
 
   const openModal = () =>
