@@ -2,6 +2,8 @@ import { Box, TextField } from '@interest-protocol/ui-kit';
 import { ChangeEvent, FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
+import { useWeb3 } from '@/hooks';
+import { FixedPointMath } from '@/lib';
 import { parseInputEventToNumberString } from '@/utils';
 
 import { SwapForm } from '../swap.types';
@@ -12,6 +14,8 @@ import SelectToken from './select-token';
 
 const FromInput: FC = () => {
   const { register, setValue, control } = useFormContext<SwapForm>();
+  const { coinsMap } = useWeb3();
+  const from = useWatch({ control: control, name: 'from' });
 
   useWatch({ control, name: 'focus' });
   const swapping = useWatch({ control, name: 'swapping' });
@@ -49,7 +53,13 @@ const FromInput: FC = () => {
                   setValue('updateSlider', {});
                   const value = parseInputEventToNumberString(v);
                   setValue('lock', false);
-                  setValue?.(`from.value`, value);
+                  setValue?.(
+                    `from.value`,
+                    FixedPointMath.toBigNumber(
+                      value,
+                      coinsMap[from.type].decimals
+                    )
+                  );
                 },
               })}
             />

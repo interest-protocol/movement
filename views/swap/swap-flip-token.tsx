@@ -5,7 +5,7 @@ import { useFormContext, useWatch } from 'react-hook-form';
 
 import { MOVE_TYPE_ARG } from '@/constants';
 import { SwapSVG } from '@/svg';
-import { isSui, updateURL } from '@/utils';
+import { isSui, updateURL, ZERO_BIG_NUMBER } from '@/utils';
 
 import { SwapForm } from './swap.types';
 
@@ -24,8 +24,8 @@ const SwapFlipToken: FC = () => {
     const tmpTo = to;
     const tmpFrom = from;
 
-    setValue('to', { ...tmpFrom, value: '' });
-    setValue('from', { ...tmpTo, value: '' });
+    setValue('to', { ...tmpFrom, value: ZERO_BIG_NUMBER });
+    setValue('from', { ...tmpTo, value: ZERO_BIG_NUMBER });
 
     const searchParams = new URLSearchParams();
 

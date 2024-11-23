@@ -117,12 +117,12 @@ const Dropdown: FC<DropdownProps> = ({ label, type, filterData, disabled }) => {
                 my="xs"
                 zIndex="1"
                 bg="surface"
-                color="onSurface"
                 display="flex"
-                minWidth={['8rem', '8rem', '8rem', '15rem']}
-                position="absolute"
+                color="onSurface"
                 borderRadius="xs"
+                position="absolute"
                 flexDirection="column"
+                minWidth={['8rem', '8rem', '8rem', '15rem']}
                 cursor={disabled ? 'not-allowed' : 'pointer'}
               >
                 {filterData.map((value) => (

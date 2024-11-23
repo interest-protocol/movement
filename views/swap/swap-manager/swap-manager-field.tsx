@@ -7,7 +7,6 @@ import useSWR from 'swr';
 import { useDebounce } from 'use-debounce';
 
 import { useNetwork } from '@/context/network';
-import { FixedPointMath } from '@/lib';
 import { makeSWRKey } from '@/utils';
 
 import { RouteWithAmount, SwapManagerProps } from './swap-manager.types';
@@ -34,7 +33,6 @@ const SwapManagerField: FC<SwapManagerProps> = ({
 
   const lock = useWatch({ control, name: 'lock' });
   const toType = useWatch({ control, name: 'to.type' });
-  const decimals = useWatch({ control, name: `${setValueName}.decimals` });
 
   const { error } = useSWR(
     makeSWRKey(
@@ -44,7 +42,7 @@ const SwapManagerField: FC<SwapManagerProps> = ({
     async () => {
       if (!from || !+from?.value || lock || hasNoMarket) return;
 
-      const amount = FixedPointMath.toBigNumber(from.value, from.decimals);
+      const amount = from.value;
 
       const safeAmount = amount.decimalPlaces(0, BigNumber.ROUND_DOWN);
 
@@ -87,14 +85,7 @@ const SwapManagerField: FC<SwapManagerProps> = ({
         const [coinsPath, poolIds, amountObj] = response;
 
         setIsZeroSwapAmount(amountObj.amount.isZero());
-        setValue(
-          `${setValueName}.value`,
-          FixedPointMath.toNumber(
-            amountObj.amount,
-            decimals,
-            decimals
-          ).toString()
-        );
+        setValue(`${setValueName}.value`, amountObj.amount);
         setValue('poolsMap', poolsMap);
         setValue('routeWithAmount', [coinsPath, poolIds, amountObj]);
       },
