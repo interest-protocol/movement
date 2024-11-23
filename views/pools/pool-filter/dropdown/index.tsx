@@ -7,6 +7,7 @@ import { v4 } from 'uuid';
 
 import useClickOutsideListenerRef from '@/hooks/use-click-outside-listener-ref';
 import { ArrowDownSVG, ArrowUpSVG } from '@/svg';
+import { updateURL } from '@/utils';
 
 import { FormFilterValue } from '../../pool-card/pool-card.types';
 import { FilterItemProps, PoolForm } from '../../pools.types';
@@ -29,7 +30,8 @@ const Dropdown: FC<DropdownProps> = ({ label, type, filterData, disabled }) => {
 
   const [isSelected, setIsSelected] = useState(false);
 
-  const router = useRouter();
+  const { pathname } = useRouter();
+  const searchParams = new URLSearchParams();
 
   const closeDropdown = (event: any) => {
     if (
@@ -59,15 +61,15 @@ const Dropdown: FC<DropdownProps> = ({ label, type, filterData, disabled }) => {
       setIsSelected(!isSelected);
       replace(tmpFilters);
 
-      const newQuery = { ...router.query, [type]: option.value };
+      searchParams.delete(type);
 
-      if (!option.value) {
-        delete newQuery[type];
-      }
-
-      router.push({ pathname: router.pathname, query: newQuery }, undefined, {
-        shallow: true,
+      tmpFilters.forEach((filter) => {
+        if (filter.type && filter.value) {
+          searchParams.append(filter.type, filter.value);
+        }
       });
+
+      updateURL(`${pathname}?${searchParams.toString()}`);
     }
     setOpen(not);
   };
