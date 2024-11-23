@@ -1,8 +1,9 @@
 import { createContext, FC, PropsWithChildren, useContext } from 'react';
 
+import { PRICE_TYPE } from '@/constants';
 import { useNetwork } from '@/context/network';
 import { useGetCoinMetadata } from '@/hooks/use-get-coin-metadata';
-import useGetMultipleTokenPriceBySymbol from '@/hooks/use-get-multiple-token-price-by-symbol';
+import useGetMultipleTokenPriceByType from '@/hooks/use-get-multiple-token-price-by-type';
 import { usePool } from '@/hooks/use-pools';
 import { AmmPool, CoinMetadataWithType } from '@/interface';
 
@@ -52,7 +53,11 @@ export const PoolDetailsProvider: FC<
     data: prices,
     isLoading: isPricesLoading,
     error: pricesError,
-  } = useGetMultipleTokenPriceBySymbol(getAllSymbols(types, network));
+  } = useGetMultipleTokenPriceByType(
+    getAllSymbols(types, network).flatMap((symbol) =>
+      PRICE_TYPE[symbol] ? [symbol] : []
+    )
+  );
 
   const loading =
     isPoolLoading ||

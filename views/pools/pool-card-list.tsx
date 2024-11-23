@@ -7,12 +7,12 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { useIsMounted } from 'usehooks-ts';
 import { v4 } from 'uuid';
 
-import { Network, PAGE_SIZE } from '@/constants';
+import { Network, PAGE_SIZE, PRICE_TYPE } from '@/constants';
 import { CATEGORY_POOLS } from '@/constants/pools';
 import { useNetwork } from '@/context/network';
 import { useWeb3 } from '@/hooks';
 import { useGetCoinMetadata } from '@/hooks/use-get-coin-metadata';
-import useGetMultipleTokenPriceBySymbol from '@/hooks/use-get-multiple-token-price-by-symbol';
+import useGetMultipleTokenPriceByType from '@/hooks/use-get-multiple-token-price-by-type';
 import { usePools } from '@/hooks/use-pools';
 import { getAllSymbols } from '@/views/pools/pools.utils';
 
@@ -269,7 +269,11 @@ const PoolCardListContent: FC<PoolCardListContentProps> = ({
   const symbols = getAllSymbols(types, network);
 
   const { data: pricesRecord, isLoading: arePricesLoading } =
-    useGetMultipleTokenPriceBySymbol(symbols);
+    useGetMultipleTokenPriceByType(
+      symbols.flatMap((symbol) =>
+        PRICE_TYPE[symbol] ? [PRICE_TYPE[symbol]] : []
+      )
+    );
 
   const { data: coinMetadataMap, isLoading: isCoinMetadataLoading } =
     useGetCoinMetadata(types);

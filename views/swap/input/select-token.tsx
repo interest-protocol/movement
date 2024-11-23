@@ -5,7 +5,8 @@ import { FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import TokenIcon from '@/components/token-icon';
-import { Network } from '@/constants';
+import { Network, PRICE_TYPE } from '@/constants';
+import { getPrices } from '@/hooks/use-get-multiple-token-price-by-type/use-get-multiple-token-price-by-type.utils';
 import { useModal } from '@/hooks/use-modal';
 import { CoinData } from '@/interface';
 import { ChevronDownSVG } from '@/svg';
@@ -75,12 +76,14 @@ const SelectToken: FC<InputProps> = ({ label }) => {
       usdPrice: null,
     });
 
-    fetch(`/api/v1/coin-price?symbol=${symbol}`)
-      .then((response) => response.json())
-      .then((data) =>
-        setValue(`${label}.usdPrice`, data[symbol][0].quote.USD.price)
-      )
-      .catch(() => null);
+    if (PRICE_TYPE[symbol])
+      getPrices([PRICE_TYPE[symbol]])
+        .then((data) => {
+          console.log({ data });
+
+          setValue(`${label}.usdPrice`, data[PRICE_TYPE[symbol]]);
+        })
+        .catch(() => null);
 
     if (label === 'from') setValue('to.value', '');
 

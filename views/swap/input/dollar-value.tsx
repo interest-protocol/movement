@@ -10,7 +10,7 @@ import { InputProps } from './input.types';
 import PriceImpact from './price-impact';
 
 const AmountInDollar: FC<InputProps> = ({ label }) => {
-  const { control } = useFormContext<SwapForm>();
+  const { control, getValues } = useFormContext<SwapForm>();
 
   const value = useWatch({
     control,
@@ -21,6 +21,8 @@ const AmountInDollar: FC<InputProps> = ({ label }) => {
     control,
     name: `${label}.usdPrice`,
   });
+
+  console.log({ symbol: getValues(`${label}.symbol`), usdPrice });
 
   if (!(usdPrice && value)) return '--';
 

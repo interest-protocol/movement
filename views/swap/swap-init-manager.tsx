@@ -11,7 +11,9 @@ import {
   MOVE_TYPE_ARG,
   Network,
   PRICE_BLACKLIST,
+  PRICE_TYPE,
 } from '@/constants';
+import { getPrices } from '@/hooks/use-get-multiple-token-price-by-type/use-get-multiple-token-price-by-type.utils';
 import { useWeb3 } from '@/hooks/use-web3';
 import { getCoin, isSui, updateURL } from '@/utils';
 
@@ -78,13 +80,12 @@ const SwapInitManager: FC = () => {
 
     form.setValue(field, token);
 
-    if (!PRICE_BLACKLIST.includes(token.symbol))
-      fetch(`/api/v1/coin-price?symbol=${token.symbol}`)
-        .then((response) => response.json?.())
+    if (PRICE_TYPE[token.symbol] && !PRICE_BLACKLIST.includes(token.symbol))
+      getPrices([PRICE_TYPE[token.symbol]])
         .then((data) =>
           form.setValue(
             `${field}.usdPrice`,
-            data[token.symbol][0]?.quote?.USD?.price ?? null
+            data[PRICE_TYPE[token.symbol]] ?? null
           )
         )
         .catch(console.log);
